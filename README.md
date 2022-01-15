@@ -1,0 +1,2 @@
+# Sequeduct
+Sequencing analysis pipeline
