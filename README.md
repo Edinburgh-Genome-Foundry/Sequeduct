@@ -8,6 +8,13 @@
 Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly constructs, using long reads.
 
 
+## Usage
+
+```bash
+nextflow run sequeduct.nf
+```
+
+
 ## Copyright
 
 Copyright 2021 Edinburgh Genome Foundry
