@@ -11,7 +11,7 @@ Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly
 ## Usage
 
 ```bash
-nextflow run sequeduct.nf
+nextflow run sequeduct.nf --fastq_dir='fastq' --sample_sheet='sample_sheet.csv'
 ```
 
 
