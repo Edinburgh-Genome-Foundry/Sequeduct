@@ -99,15 +99,12 @@ process runNanoPlot {
 process AlignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy'
 
-    input: 
+    input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file) from entries_fasta_fastq_ch
 
     output:
-        path sam_file
-        path paf_file
-        path sorted_sam_file
-        path bam_file
-        path bai_file
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv) into entries_aligned_ch
+        // path bai_file
 
     script:
         sam_file = entry + '.sam'
@@ -123,6 +120,23 @@ process AlignEntries {
         samtools depth -aa $sorted_sam_file > $counts_tsv
         samtools view -S -b $sorted_sam_file > $bam_file
         samtools index $bam_file $bai_file
+        """
+}
+
+
+process callVariants {
+    publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy'
+
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv) from entries_aligned_ch
+
+    output:
+        path vcf_file
+
+    script:
+        vcf_file = entry + '.vcf'
+        """
+        freebayes --ploidy 1 --min-alternate-fraction 0.1 --min-alternate-count 2 -f $sample_fasta $bam_file > $vcf_file
         """
 }
 
