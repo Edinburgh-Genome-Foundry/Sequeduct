@@ -111,10 +111,12 @@ process AlignEntries {
         sam_file = entry + '.sam'
         paf_file = entry + '.paf'
         sorted_sam_file = entry + '_sorted.sam'
+        counts_tsv = entry + '_sorted.sam_counts.tsv'
         """
         minimap2 -a $sample_fasta $fastq_file > $sam_file
         paftools.js sam2paf $sam_file > $paf_file
         samtools sort -O sam -T sample.sort -o $sorted_sam_file $sam_file
+        samtools depth -aa $sorted_sam_file > $counts_tsv
         """
 }
 
