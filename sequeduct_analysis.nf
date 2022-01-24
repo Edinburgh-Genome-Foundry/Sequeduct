@@ -14,25 +14,25 @@ max_length = 12000  // temporary value
 Channel
     .fromPath(params.sample_sheet)
     .splitCsv(header: true)
-    .unique { row -> row['Barcode_dir'] }  // a barcode may be present multiple times due to plasmid pooling
-    .map { row -> row.Barcode_dir }
-    .set { barcodes_ch  }
-
-Channel
-    .fromPath(params.sample_sheet)
-    .splitCsv(header: true)
-    .unique { row -> row['Sample'] }  // a sample may be present multiple times in different barcodes
-    .map { row -> row.Sample }
-    .set { samples_ch  }
+    // .unique { row -> row['Barcode_dir'] }
+    .map { row -> 
+        def barcode_dir = row['Barcode_dir']  // a barcode is present only once -- no pooling
+        def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
+        def entry = "${barcode_dir}_${sample}"  // unique key for each sample sheet entry
+        return [entry, barcode_dir, sample]
+        }
+    .set { entries_ch  }
 
 process runNanoFilt {
     publishDir 'results/dir2_analysis/n1_fastq_filtered', mode: 'copy'
 
     input:
-        val barcode from barcodes_ch
+        tuple val(entry), val(barcode), val(sample) from entries_ch
 
     output:
-        tuple val(barcode), path(fastq_file) into fastq_filtered_ch
+        tuple val(entry), val(barcode), path(fastq_file) into fastq_filtered_ch
+        tuple val(entry), val(barcode), val(sample), path(fastq_file) into entries_fastq_ch
+
 
     script:
         barcode_path = params.fastq_dir + '/' + barcode
@@ -51,7 +51,7 @@ process runNanoPlot {
     publishDir 'results/dir2_analysis/n2_nanoplots', mode: 'copy'
 
     input:
-        tuple val(barcode), file(fastq_file) from fastq_filtered_ch
+        tuple val(entry), val(barcode), path(fastq_file) from fastq_filtered_ch
 
     output:
         path barcode into nanoplots
@@ -64,13 +64,13 @@ process runNanoPlot {
 }
 
 process convertGenbank {
-    publishDir 'results/dir2_analysis/n3_ref_fasta', mode: 'copy'
+    publishDir 'results/dir2_analysis/n3_ref_fasta', mode: 'copy', pattern: '*.fa'  // need only the fasta
 
     input:
-        val sample from samples_ch
+        tuple val(entry), val(barcode), val(sample), path(fastq_file) from entries_fastq_ch
 
     output:
-        path sample_fasta into sample_fasta_ch
+        tuple val(entry), val(barcode), val(sample), path(fastq_file), path(sample_fasta) into entries_fastq_fasta_ch
 
     script:
         genbank_path = params.reference_dir + '/' + sample + '.gb'
