@@ -125,13 +125,13 @@ process AlignEntries {
 
 
 process callVariants {
-    publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy'
+    publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy', pattern: '*.vcf'
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv) from entries_aligned_ch
 
     output:
-        path vcf_file
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file) into entries_vcf_ch
 
     script:
         vcf_file = entry + '.vcf'
@@ -139,5 +139,30 @@ process callVariants {
         freebayes --ploidy 1 --min-alternate-fraction 0.1 --min-alternate-count 2 -f $sample_fasta $bam_file > $vcf_file
         """
 }
+
+process callConsensus {
+    publishDir 'results/dir2_analysis/n6_consensus', mode: 'copy', pattern: '*_consensus.fa'
+
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file) from entries_vcf_ch
+
+    output:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(consensus_fa_file) into entries_out_ch
+
+    script:
+        vcf_gz_file = entry + '.vcf.gz'
+        filtered_vcf_file = entry + '_filtered.vcf'
+        filtered_vcf_gz_file = entry + '_filtered.vcf.gz'
+        consensus_fa_file = entry + '_consensus.fa'
+        """
+        bgzip --keep --index $vcf_file
+        bcftools index $vcf_gz_file
+        bcftools filter --output-type v -i'%QUAL>10' $vcf_gz_file > $filtered_vcf_file
+        bgzip --keep --index $filtered_vcf_file
+        bcftools index $filtered_vcf_gz_file
+        bcftools consensus --fasta-ref $sample_fasta --output $consensus_fa_file $filtered_vcf_gz_file
+        """
+}
+
 
 result.view()
