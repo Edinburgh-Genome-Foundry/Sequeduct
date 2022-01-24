@@ -91,4 +91,22 @@ process convertGenbank {
         """
 }
 
+
+process AlignEntries {
+    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy'
+
+    input: 
+        tuple val(entry), val(barcode), val(sample), path(fastq_file), path(sample_fasta) from entries_fastq_fasta_ch
+
+    output:
+        path sam_file
+
+    script:
+        sam_file = entry + '.sam'
+
+        """
+        minimap2 -a $sample_fasta $fastq_file > $sam_file
+        """
+}
+
 result.view()
