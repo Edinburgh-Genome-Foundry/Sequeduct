@@ -5,11 +5,11 @@ params.reference_dir = 'ref'   // dir of reference sequence Genbank files. Filen
 
 params.fastq_dir = 'fastq'  // The directory that contains the barcode directories of FASTQ files
 params.barcode_prefix = 'barcode'  // The prefix for the individual barcode directories as output by the sequencer
+params.max_len_fraction = 1.5  // For calculating max length of filtered FASTQ reads, to avoid plasmid dimers
 
 quality_cutoff = 9
-max_len_fraction = 1.5
 min_length = 500  // nucleotides
-max_length = 12000  // temporary value
+
 
 Channel
     .fromPath(params.sample_sheet)
@@ -23,54 +23,15 @@ Channel
         }
     .set { entries_ch  }
 
-process runNanoFilt {
-    publishDir 'results/dir2_analysis/n1_fastq_filtered', mode: 'copy'
+
+process convertGenbank {
+    publishDir 'results/dir2_analysis/n1_ref_fasta', mode: 'copy', pattern: '*.fa'  // need only the fasta
 
     input:
         tuple val(entry), val(barcode), val(sample) from entries_ch
 
     output:
-        tuple val(entry), val(barcode), path(fastq_file) into fastq_filtered_ch
-        tuple val(entry), val(barcode), val(sample), path(fastq_file) into entries_fastq_ch
-
-
-    script:
-        barcode_path = params.fastq_dir + '/' + barcode
-        fastq_file = barcode + '.fastq'  // need for output
-        fastqDir = file(barcode_path)
-
-        fastqFiles = fastqDir.listFiles()  // multiple FASTQ in each barcode
-        fastqFilePaths = []
-        fastqFileString = fastqFiles.join(' ')  // need as one string for cat
-        """
-        cat $fastqFileString | NanoFilt -l $min_length --maxlength $max_length -q $quality_cutoff > $fastq_file
-        """
-}
-
-process runNanoPlot {
-    publishDir 'results/dir2_analysis/n2_nanoplots', mode: 'copy'
-
-    input:
-        tuple val(entry), val(barcode), path(fastq_file) from fastq_filtered_ch
-
-    output:
-        path barcode into nanoplots
-        stdout result
-
-    script:
-        """
-        NanoPlot --raw --fastq $fastq_file -o $barcode
-        """
-}
-
-process convertGenbank {
-    publishDir 'results/dir2_analysis/n3_ref_fasta', mode: 'copy', pattern: '*.fa'  // need only the fasta
-
-    input:
-        tuple val(entry), val(barcode), val(sample), path(fastq_file) from entries_fastq_ch
-
-    output:
-        tuple val(entry), val(barcode), val(sample), path(fastq_file), path(sample_fasta) into entries_fastq_fasta_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), stdout into entries_fasta_ch  // stdout for seq length
 
     script:
         genbank_path = params.reference_dir + '/' + sample + '.gb'
@@ -88,15 +49,59 @@ process convertGenbank {
         # FASTA out
         with open("$sample_fasta", "w") as output_handle:
             SeqIO.write(record, output_handle, "fasta")
+
+        print(len(record), end="")
         """
 }
 
+
+process runNanoFilt {
+    publishDir 'results/dir2_analysis/n2_fastq_filtered', mode: 'copy', pattern: '*.fastq'  // need only the fastq
+
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length) from entries_fasta_ch
+
+    output:
+        tuple val(entry), val(barcode), path(fastq_file) into fastq_filtered_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file) into entries_fasta_fastq_ch
+
+
+    script:
+        barcode_path = params.fastq_dir + '/' + barcode
+        fastq_file = barcode + '.fastq'  // need for output
+        fastqDir = file(barcode_path)
+
+        fastqFiles = fastqDir.listFiles()  // multiple FASTQ in each barcode
+        fastqFilePaths = []
+        fastqFileString = fastqFiles.join(' ')  // need as one string for cat
+
+        max_length = seq_length * params.max_len_fraction
+        """
+        cat $fastqFileString | NanoFilt -l $min_length --maxlength $max_length -q $quality_cutoff > $fastq_file
+        """
+}
+
+process runNanoPlot {
+    publishDir 'results/dir2_analysis/n3_nanoplots', mode: 'copy'
+
+    input:
+        tuple val(entry), val(barcode), path(fastq_file) from fastq_filtered_ch
+
+    output:
+        path barcode into nanoplots
+        stdout result
+
+    script:
+        """
+        NanoPlot --raw --fastq $fastq_file -o $barcode
+        """
+}
 
 process AlignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy'
 
     input: 
-        tuple val(entry), val(barcode), val(sample), path(fastq_file), path(sample_fasta) from entries_fastq_fasta_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file) from entries_fasta_fastq_ch
 
     output:
         path sam_file
