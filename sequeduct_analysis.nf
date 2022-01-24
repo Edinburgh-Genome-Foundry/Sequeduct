@@ -65,7 +65,6 @@ process runNanoFilt {
         tuple val(entry), val(barcode), path(fastq_file) into fastq_filtered_ch
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file) into entries_fasta_fastq_ch
 
-
     script:
         barcode_path = params.fastq_dir + '/' + barcode
         fastq_file = barcode + '.fastq'  // need for output
@@ -105,12 +104,15 @@ process AlignEntries {
 
     output:
         path sam_file
+        path paf_file
 
     script:
         sam_file = entry + '.sam'
+        paf_file = entry + '.paf'
 
         """
         minimap2 -a $sample_fasta $fastq_file > $sam_file
+        paftools.js sam2paf $sam_file > $paf_file
         """
 }
 
