@@ -7,6 +7,8 @@ params.fastq_dir = 'fastq'  // The directory that contains the barcode directori
 params.barcode_prefix = 'barcode'  // The prefix for the individual barcode directories as output by the sequencer
 params.max_len_fraction = 1.5  // For calculating max length of filtered FASTQ reads, to avoid plasmid dimers
 
+params.projectname = 'Noname'  // display in PDF
+
 quality_cutoff = 9
 min_length = 500  // nucleotides
 
@@ -21,7 +23,7 @@ Channel
         def entry = "${barcode_dir}_${sample}"  // unique key for each sample sheet entry
         return [entry, barcode_dir, sample]
         }
-    .set { entries_ch  }
+    .set { entries_ch }
 
 
 process convertGenbank {
@@ -104,7 +106,6 @@ process AlignEntries {
 
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv) into entries_aligned_ch
-        // path bai_file
 
     script:
         sam_file = entry + '.sam'
@@ -164,5 +165,59 @@ process callConsensus {
         """
 }
 
+process writeCSV {
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(consensus_fa_file) from entries_out_ch
+    output:
+        path samplesheet_csv into samplesheet_csv_ch
+        path paf_file into paf_file_ch
+        path counts_tsv into counts_tsv_ch
+        path vcf_file into vcf_file_ch
+        path consensus_fa_file into consensus_fa_file_ch
+    script:
+        samplesheet_csv = "entries.csv"
+        // order is important:
+        """
+        echo "$entry,$barcode,$sample,$sample_fasta" >> $samplesheet_csv
+        """    
+}
+
+
+Channel
+    .fromPath(params.sample_sheet)
+    .splitCsv(header: true)
+    .unique { row -> row['Sample'] }
+    .map { row -> file(params.reference_dir + '/' + row['Sample'] + '.gb') }
+    .set { genbank_ch }
+
+
+process runEdiacara {
+    publishDir 'results/dir2_analysis/n7_allfiles', mode: 'symlink'
+
+    input:
+        file paf from paf_file_ch.collect()
+        file counts_tsv from counts_tsv_ch.collect()
+        file vcf_file from vcf_file_ch.collect()
+        file consensus_fa_file from consensus_fa_file_ch.collect()
+        path genbank from genbank_ch.collect()
+        path samplesheet_csv from samplesheet_csv_ch.collectFile()
+    output:
+        file paf into paf_out
+        file counts_tsv into tsv_out
+        path genbank into genbank_out
+        path samplesheet_csv into samplesheet_csv_out
+//         tuple path(pdf_file), path(results_csv_file) into results_ch
+    script:
+        pdf_file = "Ediacara_report.pdf"
+        results_csv_file = "results.csv"
+        """
+        #!/usr/bin/env python
+
+        import os
+        import pandas as pd
+        from Bio import SeqIO
+        import ediacara as edi
+        """
+}
 
 result.view()
