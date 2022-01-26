@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.sample_sheet = ''  // CSV of the sample ~ barcode relations. Columns: Sample,Barcode_dir (may have other)
-params.reference_dir = 'ref'   // dir of reference sequence Genbank files. Filenames must match 'Sample' column entries
+params.reference_dir = 'ref'  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
 
 params.fastq_dir = 'fastq'  // The directory that contains the barcode directories of FASTQ files
 params.barcode_prefix = 'barcode'  // The prefix for the individual barcode directories as output by the sequencer
