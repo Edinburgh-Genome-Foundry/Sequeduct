@@ -33,7 +33,6 @@ Channel
         }
     .set { entries_ch }
 
-
 process convertGenbank {
 
     input:
@@ -43,7 +42,7 @@ process convertGenbank {
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) into entries_fasta_ch
 
     script:
-        genbank_path = params.reference_dir + '/' + sample + '.gb'
+        genbank_path = PWD + '/' + params.reference_dir + '/' + sample + '.gb'
         sample_fasta = sample + '.fa'
 
         """
@@ -53,7 +52,7 @@ process convertGenbank {
         from Bio import SeqIO
 
         # Genbank in
-        record = SeqIO.read(os.path.join("$PWD", "$genbank_path"), "genbank")
+        record = SeqIO.read("$genbank_path", "genbank")
         record.id = "$sample"
         # FASTA out
         with open("$sample_fasta", "w") as output_handle:
@@ -77,5 +76,37 @@ process alignParts {
         """
         cat $sample_fasta $parts_path | \
         minimap2 -cx asm5 $consensus_path - > $paf
+        """
+}
+
+process writeCSV {
+    input:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(consensus_path), path(paf) from alignment_ch
+    output:
+        path samplesheet_csv into samplesheet_csv_ch
+        path paf into paf_file_ch
+    script:
+        samplesheet_csv = "entries.csv"
+        plan_path = PWD + '/' + params.assembly_plan
+        // order is important, see Python script:
+        """
+        echo "$params.projectname,$entry,$barcode,$sample,$result,$genbank_path,$sample_fasta,$consensus_path,$paf,$plan_path" >> $samplesheet_csv
+        """    
+}
+
+process runReview {
+    publishDir 'results/dir3_review/n2_results', mode: 'symlink'
+
+    input:
+        file paf from paf_file_ch.collect()
+        path samplesheet_csv from samplesheet_csv_ch.collectFile()
+    output:
+        path(samplesheet_csv) into results_ch
+    script:
+        pdf_file = "consensus_review.pdf"
+        results_csv_file = "results.csv"
+        """
+        #!/usr/bin/env python
+        import ediacara
         """
 }
