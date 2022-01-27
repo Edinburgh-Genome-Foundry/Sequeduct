@@ -20,6 +20,9 @@ params.consensus_true = '1'  // marker for performing review
 params.denovo_columname = 'Review_de_novo'
 params.denovo_true = '1'  // marker for performing review
 
+assembly_prefix = 'egf'
+canu_postfix = '.contigs.fasta'  // hardcoded into canu
+
 ///////////////////////////////////////////////////////////////////////////////
 // Variant call consensus sequence review
 
@@ -156,7 +159,6 @@ Channel
     .set { entries_de_novo_ch }
 
 process convertGenbank_de_novo {
-
     input:
         tuple val(entry), val(barcode), val(sample), val(result) from entries_de_novo_ch
 
@@ -183,13 +185,55 @@ process convertGenbank_de_novo {
 }
 
 process assembleDeNovo {
-    publishDir 'results/dir3_review/n1_de_novo_assembly', mode: 'symlink'
+    publishDir 'results/dir3_review/m1_de_novo_assembly', mode: 'symlink'
     
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) from entries_fasta_de_novo_ch
+    output:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), path(assembly_dir) into assembly_de_novo_ch 
     script:
         fastq_path = PWD + '/' + params.fastq_filtered_dir + '/' + barcode + '.fastq'
+        assembly_dir = barcode + '_assembly'
         """
-        canu -p egf -d $barcode genomeSize=9k -nanopore $fastq_path
+        canu -p $assembly_prefix -d $assembly_dir genomeSize=9k -nanopore $fastq_path
+        """
+}
+
+process trimAssembly {
+    publishDir 'results/dir3_review/o1_de_novo_assembly/trimmed', mode: 'symlink', pattern: '*_denovo.fasta'
+
+    input:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir) from assembly_de_novo_ch 
+    output:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo) into trimmed_de_novo_ch 
+    
+    script:
+        trimmed_denovo = barcode + '_denovo.fasta'
+        """
+        #!/usr/bin/env python
+        from Bio import SeqIO
+
+        canu_fasta = "$assembly_dir" + '/' + "$assembly_prefix" + "$canu_postfix"
+        try:
+            contig = SeqIO.read(canu_fasta, format="fasta")
+        except:
+            print("The FASTA file contains more than 1 contigs. First contig used.")
+            contig = next(SeqIO.parse(canu_fasta, format="fasta"))
+
+        entries = contig.description.split(" ")
+        desc_dict = {"name": entries[0]}  # first is the name
+        for entry in entries[1:]:  # addressed the first one above
+            elements = entry.split("=")
+            desc_dict[elements[0]] = elements[1]
+
+        if desc_dict["suggestCircular"] == "yes":  # as output by canu
+            start, end = desc_dict["trim"].split("-")  # must contain 2 values
+            start = int(start)
+            end = int(end)
+            SeqIO.write(contig[start:end], "$trimmed_denovo", format="fasta")
+        else:  # keep intact
+            SeqIO.write(contig, "$trimmed_denovo", format="fasta")
+        
+        print("Trimmed:", "$barcode")
         """
 }
