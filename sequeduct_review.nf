@@ -87,10 +87,9 @@ process writeCSV {
         path paf into paf_file_ch
     script:
         samplesheet_csv = "entries.csv"
-        plan_path = PWD + '/' + params.assembly_plan
         // order is important, see Python script:
         """
-        echo "$params.projectname,$entry,$barcode,$sample,$result,$genbank_path,$sample_fasta,$consensus_path,$paf,$plan_path" >> $samplesheet_csv
+        echo "$params.projectname,$entry,$barcode,$sample,$result,$genbank_path,$sample_fasta,$consensus_path,$paf" >> $samplesheet_csv
         """    
 }
 
@@ -101,12 +100,32 @@ process runReview {
         file paf from paf_file_ch.collect()
         path samplesheet_csv from samplesheet_csv_ch.collectFile()
     output:
-        path(samplesheet_csv) into results_ch
+        tuple path(pdf_file), path(samplesheet_csv), path(paf) into results_ch
     script:
+        plan_path = PWD + '/' + params.assembly_plan
         pdf_file = "consensus_review.pdf"
-        results_csv_file = "results.csv"
         """
         #!/usr/bin/env python
-        import ediacara
+
+        import os
+        import pandas as pd
+        import ediacara as edi
+
+        entries = pd.read_csv("$samplesheet_csv", header=None)
+        # see process writeCSV for columns:
+        entries.columns = ['project', 'entry', 'barcode', 'sample', 'result', 'gb', 'fa', 'consensus', 'paf', ]
+
+        consensus_list = []
+        for index, row in entries.iterrows():
+            assembly = edi.Assembly(assembly_path=row['consensus'],
+                                    reference_path=row['gb'],
+                                    alignment_path=row['paf'],
+                                    assembly_plan="$plan_path")
+            consensus_list += [assembly]
+
+        assemblybatch = edi.AssemblyBatch(assemblies=consensus_list, name="$params.projectname")
+        assemblybatch.perform_all_interpretations_in_group()
+
+        edi.write_assembly_analysis_report("$pdf_file", assemblybatch)
         """
 }
