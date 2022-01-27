@@ -15,7 +15,7 @@ params.barcode_prefix = 'barcode'  // The prefix for the individual barcode dire
 params.projectname = 'Noname'  // display in PDF
 
 params.consensus_columname = 'Review_consensus'
-params.consensus_true = 1  // marker for performing review
+params.consensus_true = '1'  // marker for performing review
 
 
 Channel
@@ -40,7 +40,7 @@ process convertGenbank {
         tuple val(entry), val(barcode), val(sample), val(result) from entries_ch
 
     output:
-        tuple val(entry), val(barcode), val(sample), val(result), path(sample_fasta) into entries_fasta_ch
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) into entries_fasta_ch
 
     script:
         genbank_path = params.reference_dir + '/' + sample + '.gb'
@@ -58,5 +58,24 @@ process convertGenbank {
         # FASTA out
         with open("$sample_fasta", "w") as output_handle:
             SeqIO.write(record, output_handle, "fasta")
+        """
+}
+
+process alignParts {
+    publishDir 'results/dir3_review/n1_alignment', mode: 'copy', pattern: '*.paf'
+
+    input:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) from entries_fasta_ch
+
+    output:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(consensus_path), path(paf) into alignment_ch
+
+    script:
+        consensus_path = PWD + '/' + params.consensus_dir + '/' + entry + '_consensus.fa'
+        parts_path = PWD + '/' + params.all_parts
+        paf = entry + '.paf'
+        """
+        cat $sample_fasta $parts_path | \
+        minimap2 -cx asm5 $consensus_path - > $paf
         """
 }
