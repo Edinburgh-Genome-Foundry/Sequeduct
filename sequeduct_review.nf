@@ -32,3 +32,31 @@ Channel
         return [entry, barcode, sample, result]
         }
     .set { entries_ch }
+
+
+process convertGenbank {
+
+    input:
+        tuple val(entry), val(barcode), val(sample), val(result) from entries_ch
+
+    output:
+        tuple val(entry), val(barcode), val(sample), val(result), path(sample_fasta) into entries_fasta_ch
+
+    script:
+        genbank_path = params.reference_dir + '/' + sample + '.gb'
+        sample_fasta = sample + '.fa'
+
+        """
+        #!/usr/bin/env python
+
+        import os
+        from Bio import SeqIO
+
+        # Genbank in
+        record = SeqIO.read(os.path.join("$PWD", "$genbank_path"), "genbank")
+        record.id = "$sample"
+        # FASTA out
+        with open("$sample_fasta", "w") as output_handle:
+            SeqIO.write(record, output_handle, "fasta")
+        """
+}
