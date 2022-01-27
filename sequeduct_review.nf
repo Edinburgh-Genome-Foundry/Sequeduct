@@ -182,4 +182,14 @@ process convertGenbank_de_novo {
         """
 }
 
-
+process assembleDeNovo {
+    publishDir 'results/dir3_review/n1_de_novo_assembly', mode: 'symlink'
+    
+    input:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) from entries_fasta_de_novo_ch
+    script:
+        fastq_path = PWD + '/' + params.fastq_filtered_dir + '/' + barcode + '.fastq'
+        """
+        canu -p egf -d $barcode genomeSize=9k -nanopore $fastq_path
+        """
+}
