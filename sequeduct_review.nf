@@ -108,7 +108,7 @@ process runReview {
         file paf from paf_file_ch.collect()
         path samplesheet_csv from samplesheet_csv_ch.collectFile()
     output:
-        tuple path(pdf_file), path(samplesheet_csv), path(paf) into results_ch
+        tuple path(pdf_file), path(samplesheet_csv) into results_ch
     script:
         plan_path = PWD + '/' + params.assembly_plan
         pdf_file = "consensus_review.pdf"
@@ -282,7 +282,7 @@ process runReview_de_novo {
         path trimmed_denovo from trimmed_de_novo_fa_ch.collect()
         path samplesheet_csv from samplesheet_csv_de_novo_ch.collectFile()
     output:
-        tuple path(pdf_file), path(samplesheet_csv), path(paf) into results_de_novo_ch
+        tuple path(pdf_file), path(samplesheet_csv) into results_de_novo_ch
     script:
         plan_path = PWD + '/' + params.assembly_plan
         pdf_file = "de_novo_review.pdf"
