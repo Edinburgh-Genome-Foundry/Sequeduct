@@ -258,3 +258,19 @@ process alignParts_de_novo {
         minimap2 -cx asm5 $trimmed_denovo - > $paf
         """
 }
+
+process writeCSV_de_novo {
+    input:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo), path(paf) from aligned_de_novo_ch 
+    output:
+        path samplesheet_csv into samplesheet_csv_de_novo_ch
+        path trimmed_denovo into trimmed_de_novo_fa_ch
+        path paf into paf_file_de_novo_ch
+    script:
+        samplesheet_csv = "entries.csv"
+        // order is important, see Python script:
+        """
+        echo "$params.projectname,$entry,$barcode,$sample,$result,$genbank_path,$sample_fasta,$trimmed_denovo,$paf" >> $samplesheet_csv
+        """    
+}
+
