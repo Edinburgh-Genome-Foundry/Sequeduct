@@ -187,7 +187,7 @@ process convertGenbank_de_novo {
 }
 
 process assembleDeNovo {
-    publishDir 'results/dir3_review/m1_de_novo_assembly', mode: 'symlink'
+    publishDir 'results/dir3_review/o1_de_novo_assembly', mode: 'symlink'
     
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(seq_length) from entries_fasta_de_novo_ch
@@ -241,3 +241,20 @@ process trimAssembly {
         """
 }
 
+process alignParts_de_novo {
+    publishDir 'results/dir3_review/o2_alignment_de_novo', mode: 'copy', pattern: '*.paf'
+
+    input:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo) from trimmed_de_novo_ch 
+
+    output:
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo), path(paf) into aligned_de_novo_ch 
+
+    script:
+        parts_path = PWD + '/' + params.all_parts
+        paf = entry + '.paf'
+        """
+        cat $sample_fasta $parts_path | \
+        minimap2 -cx asm5 $trimmed_denovo - > $paf
+        """
+}
