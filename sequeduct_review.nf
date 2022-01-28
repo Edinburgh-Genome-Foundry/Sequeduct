@@ -274,3 +274,40 @@ process writeCSV_de_novo {
         """    
 }
 
+process runReview_de_novo {
+    publishDir 'results/dir3_review/o3_results', mode: 'symlink'
+
+    input:
+        file paf from paf_file_de_novo_ch.collect()
+        path trimmed_denovo from trimmed_de_novo_fa_ch.collect()
+        path samplesheet_csv from samplesheet_csv_de_novo_ch.collectFile()
+    output:
+        tuple path(pdf_file), path(samplesheet_csv), path(paf) into results_de_novo_ch
+    script:
+        plan_path = PWD + '/' + params.assembly_plan
+        pdf_file = "de_novo_review.pdf"
+        """
+        #!/usr/bin/env python
+
+        import os
+        import pandas as pd
+        import ediacara as edi
+
+        entries = pd.read_csv("$samplesheet_csv", header=None)
+        # see process writeCSV for columns:
+        entries.columns = ['project', 'entry', 'barcode', 'sample', 'result', 'gb', 'fa', 'de_novo', 'paf', ]
+
+        consensus_list = []
+        for index, row in entries.iterrows():
+            assembly = edi.Assembly(assembly_path=row['de_novo'],
+                                    reference_path=row['gb'],
+                                    alignment_path=row['paf'],
+                                    assembly_plan="$plan_path")
+            consensus_list += [assembly]
+
+        assemblybatch = edi.AssemblyBatch(assemblies=consensus_list, name="$params.projectname")
+        assemblybatch.perform_all_interpretations_in_group()
+
+        edi.write_assembly_analysis_report("$pdf_file", assemblybatch)
+        """
+}
