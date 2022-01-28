@@ -163,7 +163,7 @@ process convertGenbank_de_novo {
         tuple val(entry), val(barcode), val(sample), val(result) from entries_de_novo_ch
 
     output:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) into entries_fasta_de_novo_ch
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), stdout into entries_fasta_de_novo_ch  // stdout for seq length
 
     script:
         genbank_path = PWD + '/' + params.reference_dir + '/' + sample + '.gb'
@@ -181,6 +181,8 @@ process convertGenbank_de_novo {
         # FASTA out
         with open("$sample_fasta", "w") as output_handle:
             SeqIO.write(record, output_handle, "fasta")
+
+        print(str(round(len(record) / 1000)), end='')  # to get k value for canu
         """
 }
 
@@ -188,14 +190,15 @@ process assembleDeNovo {
     publishDir 'results/dir3_review/m1_de_novo_assembly', mode: 'symlink'
     
     input:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) from entries_fasta_de_novo_ch
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(seq_length) from entries_fasta_de_novo_ch
     output:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), path(assembly_dir) into assembly_de_novo_ch 
     script:
         fastq_path = PWD + '/' + params.fastq_filtered_dir + '/' + barcode + '.fastq'
         assembly_dir = barcode + '_assembly'
+        genomsize_param = 'genomeSize=' + seq_length + 'k'
         """
-        canu -p $assembly_prefix -d $assembly_dir genomeSize=9k -nanopore $fastq_path
+        canu -p $assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
         """
 }
 
@@ -237,3 +240,4 @@ process trimAssembly {
         print("Trimmed:", "$barcode")
         """
 }
+
