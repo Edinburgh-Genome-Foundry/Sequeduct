@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.sample_sheet = ''  // CSV of the sample ~ barcode relations. Columns: Sample,Barcode_dir (may have other)
-params.reference_dir = 'ref'  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
+params.reference_dir = ''  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
 
 params.fastq_dir = 'fastq'  // The directory that contains the barcode directories of FASTQ files
 params.barcode_prefix = 'barcode'  // The prefix for the individual barcode directories as output by the sequencer
@@ -12,6 +12,8 @@ params.projectname = 'Noname'  // display in PDF
 quality_cutoff = 9
 min_length = 500  // nucleotides
 
+ref_dir = file(params.reference_dir)
+
 
 Channel
     .fromPath(params.sample_sheet)
@@ -21,7 +23,11 @@ Channel
         def barcode_dir = row['Barcode_dir']  // a barcode is present only once -- no pooling
         def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
         def entry = "${barcode_dir}_${sample}"  // unique key for each sample sheet entry
-        return [entry, barcode_dir, sample]
+        def genbank_path = file("${params.reference_dir}/${sample}.gb")
+        def barcode_path = file("${params.fastq_dir}/${barcode_dir}")
+        def fastq_files = barcode_path.listFiles()  // multiple FASTQ in each barcode
+
+        return [entry, barcode_dir, barcode_path, fastq_files, sample, genbank_path]
         }
     .set { entries_ch }
 
@@ -30,13 +36,12 @@ process convertGenbank {
     publishDir 'results/dir2_analysis/n1_ref_fasta', mode: 'copy', pattern: '*.fa'  // need only the fasta
 
     input:
-        tuple val(entry), val(barcode), val(sample) from entries_ch
+        tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_path) from entries_ch
 
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), stdout into entries_fasta_ch  // stdout for seq length
+        tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), path(sample_fasta), stdout into entries_fasta_ch  // stdout for seq length
 
     script:
-        genbank_path = params.reference_dir + '/' + sample + '.gb'
         sample_fasta = sample + '.fa'
 
         """
@@ -46,7 +51,7 @@ process convertGenbank {
         from Bio import SeqIO
 
         # Genbank in
-        record = SeqIO.read(os.path.join("$PWD", "$genbank_path"), "genbank")
+        record = SeqIO.read("$genbank_path", "genbank")
         record.id = "$sample"
         # FASTA out
         with open("$sample_fasta", "w") as output_handle:
@@ -61,20 +66,17 @@ process runNanoFilt {
     publishDir 'results/dir2_analysis/n2_fastq_filtered', mode: 'copy', pattern: '*.fastq'  // need only the fastq
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length) from entries_fasta_ch
+        tuple val(entry), val(barcode), path(barcode_path), val(fastq_files), val(sample), path(sample_fasta), val(seq_length) from entries_fasta_ch
 
     output:
         tuple val(entry), val(barcode), path(fastq_file) into fastq_filtered_ch
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file) into entries_fasta_fastq_ch
 
     script:
-        barcode_path = params.fastq_dir + '/' + barcode
         fastq_file = barcode + '.fastq'  // need for output
-        fastqDir = file(barcode_path)
 
-        fastqFiles = fastqDir.listFiles()  // multiple FASTQ in each barcode
         fastqFilePaths = []
-        fastqFileString = fastqFiles.join(' ')  // need as one string for cat
+        fastqFileString = fastq_files.join(' ')  // need as one string for cat
 
         max_length = seq_length * params.max_len_fraction
         """
@@ -191,7 +193,7 @@ Channel
     .set { genbank_ch }
 
 process runEdiacara {
-    publishDir 'results/dir2_analysis/n7_allfiles_test', mode: 'symlink'
+    publishDir 'results/dir2_analysis/n7_results', mode: 'symlink'
 
     input:
         file paf from paf_file_ch.collect()
