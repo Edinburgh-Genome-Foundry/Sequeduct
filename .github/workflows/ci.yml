@@ -1,0 +1,14 @@
+name: build
+on: workflow_dispatch
+jobs:
+  build:
+    name: Build the image
+    runs-on: ubuntu-18.04
+    steps:
+      - name: "Check out repo"
+        uses: actions/checkout@v2
+      - name: "Fetch Ediacara"
+        run: |
+          eval `ssh-agent -s`
+          ssh-add - <<< '${{ secrets.EGF_SSH }}'
+          git clone git@github.com:Edinburgh-Genome-Foundry/Ediacara.git
