@@ -15,8 +15,8 @@ jobs:
       - name: "Build Docker image"
         run: |
           docker build . -f containers/Dockerfile \
-            -t ghcr.io/${{ github.repository }}:v0.1.0 \
-            -t ghcr.io/${{ github.repository }}:latest
+            -t ghcr.io/edinburgh-genome-foundry/sequeduct:v0.1.0 \
+            -t ghcr.io/edinburgh-genome-foundry/sequeduct:latest
       - name: "Release Docker image"
         run: |
           echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io --username ${{ github.repository_owner }} --password-stdin
