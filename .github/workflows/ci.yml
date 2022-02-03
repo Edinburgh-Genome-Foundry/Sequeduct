@@ -12,3 +12,13 @@ jobs:
           eval `ssh-agent -s`
           ssh-add - <<< '${{ secrets.EGF_SSH }}'
           git clone git@github.com:Edinburgh-Genome-Foundry/Ediacara.git
+      - name: "Build Docker image"
+        run: |
+          docker build . -f containers/Dockerfile \
+            -t ghcr.io/${{ github.repository }}:v0.1.0 \
+            -t ghcr.io/${{ github.repository }}:latest
+      - name: "Release Docker image"
+        run: |
+          echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io --username ${{ github.repository_owner }} --password-stdin
+          docker push ghcr.io/${{ github.repository }}:v0.1.0
+          docker push ghcr.io/${{ github.repository }}:latest
