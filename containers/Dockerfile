@@ -1,14 +1,14 @@
 FROM python:3.6
 ########################################################################################
 RUN apt-get update
-# python-Levenshtein:
+# weighted-levenshtein:
 RUN apt-get install -y gcc
 RUN pip install --no-cache-dir weighted-levenshtein
 # GeneBlocks:
 RUN pip install --no-cache-dir biopython==1.78
 RUN apt-get install -y ncbi-blast+
 RUN pip install --no-cache-dir geneblocks
-# Python packages
+# Python packages:
 RUN pip install --no-cache-dir NanoPlot==1.38.1 nanofilt==2.8.0
 ########################################################################################
 # http://www.htslib.org/download/
@@ -50,6 +50,16 @@ ENV PATH="/opt/minimap2-2.24_x64-linux:$PATH"
 ########################################################################################
 # For DNA Features Viewer:
 RUN pip install packaging
+########################################################################################
+# Canu:
+ADD https://github.com/marbl/canu/releases/download/v2.2/canu-2.2.Linux-amd64.tar.xz .
+RUN tar -xJf canu-2.2.Linux-amd64.tar.xz \
+    && mv canu-2.2/ /opt/canu-2.2
+ENV PATH="/opt/canu-2.2/bin:$PATH"
+########################################################################################
+# Java:
+RUN apt-get install -y openjdk-11-jre-headless
+ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
 ########################################################################################
 COPY Ediacara /opt/Ediacara
 RUN pip install --no-cache-dir /opt/Ediacara
