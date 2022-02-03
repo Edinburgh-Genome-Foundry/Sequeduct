@@ -56,7 +56,6 @@ process convertGenbank {
         tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), file(consensus_path) into entries_fasta_ch
 
     script:
-        // genbank_path = PWD + '/' + params.reference_dir + '/' + sample + '.gb'
         sample_fasta = sample + '.fa'
 
         """
@@ -79,6 +78,7 @@ process alignParts {
 
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), file(consensus_path) from entries_fasta_ch
+        file parts_path
 
     output:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), file(consensus_path), path(paf) into alignment_ch
@@ -252,12 +252,12 @@ process alignParts_de_novo {
 
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo) from trimmed_de_novo_ch 
+        file parts_path
 
     output:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo), path(paf) into aligned_de_novo_ch 
 
     script:
-        parts_path = PWD + '/' + params.all_parts
         paf = entry + '.paf'
         """
         cat $sample_fasta $parts_path | \
