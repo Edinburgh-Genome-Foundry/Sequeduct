@@ -8,30 +8,26 @@ Channel
     .fromPath(params.sample_sheet)
     .splitCsv(header: true)
     .unique { row -> row['Barcode_dir'] }  // a barcode may be present multiple times due to plasmid pooling
-    .map { row -> row.Barcode_dir }
-    .set { barcodes_ch }
+    .map { row ->
+        def barcode_out = row['Barcode_dir'] + '_plots'
+        def barcode_dir = row['Barcode_dir']  // a barcode is present only once -- no pooling
+        def barcode_path = file("${params.fastq_dir}/${barcode_dir}")
+        def fastq_files = barcode_path.listFiles()  // multiple FASTQ in each barcode
+        return [barcode_out, barcode_path, fastq_files]
+    }
+    .set { input_ch }
 
 process runNanoPlot {
     publishDir 'results/dir1_preview', mode: 'copy'
 
     input:
-        val barcode from barcodes_ch
-
+        tuple val(barcode), file(barcode_path), val(fastq_files) from input_ch
     output:
         path barcode into nanoplots
-        stdout result
 
     script:
-        barcode_path = params.fastq_dir + '/' + barcode
-        fastqDir = file(barcode_path)
-
-        fastqFiles = fastqDir.listFiles()  // multiple FASTQ in each barcode
-        fastqFilePaths = []
-        fastqFileString = fastqFiles.join(' ')  // need as one string for NanoPlot
-
+        fastq_file_string = fastq_files.join(' ')  // need as one string for cat
         """
-        NanoPlot --raw --fastq $fastqFileString -o $barcode
+        NanoPlot --raw --fastq $fastq_file_string -o $barcode
         """
 }
-
-result.view()
