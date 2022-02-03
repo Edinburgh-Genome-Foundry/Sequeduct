@@ -1,7 +1,7 @@
 #!/usr/bin/env nextflow
 
 params.results_csv = ''  // CSV of the sample ~ barcode relations. Columns: Barcode,Sample,Result,Review_consensus (may have other)
-params.reference_dir = 'ref'  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
+params.reference_dir = ''  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
 
 params.assembly_plan = ''  // Optional: the assembly plan CSV of the DNA constructs, one per line: Sample,Part_1,Part_2, etc. Must have a header line.
 params.all_parts = ''  // FASTA file that contains all sequences to compare against
@@ -23,6 +23,10 @@ params.denovo_true = '1'  // marker for performing review
 assembly_prefix = 'egf'
 canu_postfix = '.contigs.fasta'  // hardcoded into canu
 
+
+parts_path = file(params.all_parts)
+plan_path = file(params.assembly_plan)
+
 ///////////////////////////////////////////////////////////////////////////////
 // Variant call consensus sequence review
 
@@ -37,20 +41,22 @@ Channel
         def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
         def entry = "${barcode}_${sample}"  // unique key for each sample sheet entry
         def result = row["Result"]
-        return [entry, barcode, sample, result]
+        def genbank_path = file("${params.reference_dir}/${sample}.gb")
+        def consensus_path = file("${params.consensus_dir}/${entry}_consensus.fa")
+        return [entry, barcode, sample, result, genbank_path, consensus_path]
         }
     .set { entries_ch }
 
 process convertGenbank {
 
     input:
-        tuple val(entry), val(barcode), val(sample), val(result) from entries_ch
+        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), file(consensus_path) from entries_ch
 
     output:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) into entries_fasta_ch
+        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), file(consensus_path) into entries_fasta_ch
 
     script:
-        genbank_path = PWD + '/' + params.reference_dir + '/' + sample + '.gb'
+        // genbank_path = PWD + '/' + params.reference_dir + '/' + sample + '.gb'
         sample_fasta = sample + '.fa'
 
         """
@@ -72,14 +78,12 @@ process alignParts {
     publishDir 'results/dir3_review/n1_alignment', mode: 'copy', pattern: '*.paf'
 
     input:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta) from entries_fasta_ch
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), file(consensus_path) from entries_fasta_ch
 
     output:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(consensus_path), path(paf) into alignment_ch
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), file(consensus_path), path(paf) into alignment_ch
 
     script:
-        consensus_path = PWD + '/' + params.consensus_dir + '/' + entry + '_consensus.fa'
-        parts_path = PWD + '/' + params.all_parts
         paf = entry + '.paf'
         """
         cat $sample_fasta $parts_path | \
@@ -89,10 +93,11 @@ process alignParts {
 
 process writeCSV {
     input:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(consensus_path), path(paf) from alignment_ch
+        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), path(consensus_path), path(paf) from alignment_ch
     output:
         path samplesheet_csv into samplesheet_csv_ch
         path paf into paf_file_ch
+        path consensus_path into consensus_path_ch
     script:
         samplesheet_csv = "entries.csv"
         // order is important, see Python script:
@@ -106,11 +111,11 @@ process runReview {
 
     input:
         file paf from paf_file_ch.collect()
+        file consensus from consensus_path_ch.collect()
         path samplesheet_csv from samplesheet_csv_ch.collectFile()
     output:
         tuple path(pdf_file), path(samplesheet_csv) into results_ch
     script:
-        plan_path = PWD + '/' + params.assembly_plan
         pdf_file = "consensus_review.pdf"
         """
         #!/usr/bin/env python
@@ -154,19 +159,21 @@ Channel
         def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
         def entry = "${barcode}_${sample}"  // unique key for each sample sheet entry
         def result = row["Result"]
-        return [entry, barcode, sample, result]
+        def genbank_path = file("${params.reference_dir}/${sample}.gb")
+        def fastq_path = file("${params.fastq_filtered_dir}/${barcode}.fastq")
+        // def assembly_dir = file("${params.reference_dir}/${sample}.gb")
+        return [entry, barcode, sample, result, genbank_path, fastq_path]
         }
     .set { entries_de_novo_ch }
 
 process convertGenbank_de_novo {
     input:
-        tuple val(entry), val(barcode), val(sample), val(result) from entries_de_novo_ch
+        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), file(fastq_path) from entries_de_novo_ch
 
     output:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), stdout into entries_fasta_de_novo_ch  // stdout for seq length
+        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), stdout, path(fastq_path) into entries_fasta_de_novo_ch  // stdout for seq length
 
     script:
-        genbank_path = PWD + '/' + params.reference_dir + '/' + sample + '.gb'
         sample_fasta = sample + '.fa'
 
         """
@@ -190,11 +197,10 @@ process assembleDeNovo {
     publishDir 'results/dir3_review/o1_de_novo_assembly', mode: 'symlink'
     
     input:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(seq_length) from entries_fasta_de_novo_ch
+        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), val(seq_length), path(fastq_path) from entries_fasta_de_novo_ch
     output:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), path(assembly_dir) into assembly_de_novo_ch 
+        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), path(assembly_dir) into assembly_de_novo_ch 
     script:
-        fastq_path = PWD + '/' + params.fastq_filtered_dir + '/' + barcode + '.fastq'
         assembly_dir = barcode + '_assembly'
         genomsize_param = 'genomeSize=' + seq_length + 'k'
         """
@@ -261,11 +267,12 @@ process alignParts_de_novo {
 
 process writeCSV_de_novo {
     input:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo), path(paf) from aligned_de_novo_ch 
+        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo), path(paf) from aligned_de_novo_ch 
     output:
         path samplesheet_csv into samplesheet_csv_de_novo_ch
         path trimmed_denovo into trimmed_de_novo_fa_ch
         path paf into paf_file_de_novo_ch
+        path genbank_path into genbank_path_ch
     script:
         samplesheet_csv = "entries.csv"
         // order is important, see Python script:
@@ -279,12 +286,12 @@ process runReview_de_novo {
 
     input:
         file paf from paf_file_de_novo_ch.collect()
+        file genbank from genbank_path_ch.collect()
         path trimmed_denovo from trimmed_de_novo_fa_ch.collect()
         path samplesheet_csv from samplesheet_csv_de_novo_ch.collectFile()
     output:
         tuple path(pdf_file), path(samplesheet_csv) into results_de_novo_ch
     script:
-        plan_path = PWD + '/' + params.assembly_plan
         pdf_file = "de_novo_review.pdf"
         """
         #!/usr/bin/env python
