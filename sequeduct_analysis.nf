@@ -75,7 +75,6 @@ process runNanoFilt {
     script:
         fastq_file = barcode + '.fastq'  // need for output
 
-        fastqFilePaths = []
         fastqFileString = fastq_files.join(' ')  // need as one string for cat
 
         max_length = seq_length * params.max_len_fraction
@@ -92,7 +91,6 @@ process runNanoPlot {
 
     output:
         path barcode into nanoplots
-        stdout result
 
     script:
         """
@@ -287,5 +285,3 @@ process runEdiacara {
         print('Done')
         """
 }
-
-result.view()
