@@ -74,7 +74,7 @@ process convertGenbank {
 }
 
 process alignParts {
-    publishDir 'results/dir3_review/n1_alignment', mode: 'copy', pattern: '*.paf'
+    publishDir 'results/dir3_review/n1_consensus_alignment', mode: 'copy', pattern: '*.paf'
 
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), file(consensus_path) from entries_fasta_ch
@@ -107,7 +107,7 @@ process writeCSV {
 }
 
 process runReview {
-    publishDir 'results/dir3_review/n2_results', mode: 'symlink'
+    publishDir 'results/dir3_review/n2_consensus_results', mode: 'copy'
 
     input:
         file paf from paf_file_ch.collect()
@@ -194,7 +194,7 @@ process convertGenbank_de_novo {
 }
 
 process assembleDeNovo {
-    publishDir 'results/dir3_review/o1_de_novo_assembly', mode: 'symlink'
+    publishDir 'results/dir3_review/n3_de_novo_assembly', mode: 'symlink'
     
     input:
         tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), val(seq_length), path(fastq_path) from entries_fasta_de_novo_ch
@@ -248,7 +248,7 @@ process trimAssembly {
 }
 
 process alignParts_de_novo {
-    publishDir 'results/dir3_review/o2_alignment_de_novo', mode: 'copy', pattern: '*.paf'
+    publishDir 'results/dir3_review/n4_de_novo_alignment', mode: 'copy', pattern: '*.paf'
 
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir), path(trimmed_denovo) from trimmed_de_novo_ch 
@@ -282,7 +282,7 @@ process writeCSV_de_novo {
 }
 
 process runReview_de_novo {
-    publishDir 'results/dir3_review/o3_results', mode: 'symlink'
+    publishDir 'results/dir3_review/n5_de_novo_results', mode: 'copy'
 
     input:
         file paf from paf_file_de_novo_ch.collect()

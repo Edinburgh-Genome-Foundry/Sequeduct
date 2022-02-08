@@ -191,7 +191,7 @@ Channel
     .set { genbank_ch }
 
 process runEdiacara {
-    publishDir 'results/dir2_analysis/n7_results', mode: 'symlink'
+    publishDir 'results/dir2_analysis/n7_results', mode: 'copy'
 
     input:
         file paf from paf_file_ch.collect()
