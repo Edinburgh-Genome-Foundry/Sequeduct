@@ -216,6 +216,7 @@ process runEdiacara {
         entries = pd.read_csv('$samplesheet_csv', header=None)
         # match writeCSV process:
         entries.columns = ['projectname', 'entry', 'barcode', 'sample', 'fasta', 'vcf', 'paf', 'tsv', 'consensus_fasta']
+        entries.sort_values(by=['barcode', 'sample'], inplace=True)  # have them in order in the pdf
 
         comparatorgroups = []
         for index, row in entries.iterrows():

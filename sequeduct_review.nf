@@ -127,6 +127,7 @@ process runReview {
         entries = pd.read_csv("$samplesheet_csv", header=None)
         # see process writeCSV for columns:
         entries.columns = ['project', 'entry', 'barcode', 'sample', 'result', 'gb', 'fa', 'consensus', 'paf', ]
+        entries.sort_values(by=['barcode', 'sample'], inplace=True)  # have them in order in the pdf
 
         consensus_list = []
         for index, row in entries.iterrows():
@@ -303,6 +304,7 @@ process runReview_de_novo {
         entries = pd.read_csv("$samplesheet_csv", header=None)
         # see process writeCSV for columns:
         entries.columns = ['project', 'entry', 'barcode', 'sample', 'result', 'gb', 'fa', 'de_novo', 'paf', ]
+        entries.sort_values(by=['barcode', 'sample'], inplace=True)  # have them in order in the pdf
 
         consensus_list = []
         for index, row in entries.iterrows():
