@@ -210,7 +210,7 @@ process assembleDeNovo {
 }
 
 process trimAssembly {
-    publishDir 'results/dir3_review/o1_de_novo_assembly/trimmed', mode: 'symlink', pattern: '*_denovo.fasta'
+    publishDir 'results/dir3_review/n3_de_novo_assembly/trimmed', mode: 'symlink', pattern: '*_denovo.fasta'
 
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir) from assembly_de_novo_ch 
