@@ -195,7 +195,7 @@ process convertGenbank_de_novo {
 }
 
 process assembleDeNovo {
-    publishDir 'results/dir3_review/n3_de_novo_assembly', mode: 'symlink'
+    publishDir 'results/dir3_review/n3_de_novo_assembly', mode: 'copy'
     
     input:
         tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), val(seq_length), path(fastq_path) from entries_fasta_de_novo_ch
@@ -210,7 +210,7 @@ process assembleDeNovo {
 }
 
 process trimAssembly {
-    publishDir 'results/dir3_review/n3_de_novo_assembly/trimmed', mode: 'symlink', pattern: '*_denovo.fasta'
+    publishDir 'results/dir3_review/n3_de_novo_assembly/trimmed', mode: 'copy', pattern: '*_denovo.fasta'
 
     input:
         tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), val(assembly_dir) from assembly_de_novo_ch 
