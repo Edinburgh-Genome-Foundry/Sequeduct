@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+nextflow.enable.dsl=2
 
 params.sample_sheet = ''  // CSV of the sample ~ barcode relations. Columns: Sample,Barcode_dir (may have other)
 params.fastq_dir = 'fastq'  // The directory that contains the barcode directories of FASTQ files
@@ -21,9 +22,9 @@ process runNanoPlot {
     publishDir 'results/dir1_preview', mode: 'copy'
 
     input:
-        tuple val(barcode), file(barcode_path), val(fastq_files) from input_ch
+        tuple val(barcode), file(barcode_path), val(fastq_files)
     output:
-        path barcode into nanoplots
+        path barcode
 
     script:
         fastq_file_string = fastq_files.join(' ')  // need as one string for cat
@@ -31,3 +32,8 @@ process runNanoPlot {
         NanoPlot --raw --fastq $fastq_file_string -o $barcode
         """
 }
+
+workflow {
+    runNanoPlot(input_ch)
+}
+
