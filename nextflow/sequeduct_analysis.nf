@@ -1,38 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-params.sample_sheet = ''  // CSV of the sample ~ barcode relations. Columns: Sample,Barcode_dir (may have other)
-params.reference_dir = ''  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
-
-params.fastq_dir = 'fastq'  // The directory that contains the barcode directories of FASTQ files
-params.barcode_prefix = 'barcode'  // The prefix for the individual barcode directories as output by the sequencer
-params.max_len_fraction = 1.5  // For calculating max length of filtered FASTQ reads, to avoid plasmid dimers
-
-params.projectname = 'Noname'  // display in PDF
-
-quality_cutoff = 9
-min_length = 500  // nucleotides
-
-ref_dir = file(params.reference_dir)
-
-
-Channel
-    .fromPath(params.sample_sheet)
-    .splitCsv(header: true)
-    // .unique { row -> row['Barcode_dir'] }
-    .map { row -> 
-        def barcode_dir = row['Barcode_dir']  // a barcode is present only once -- no pooling
-        def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
-        def entry = "${barcode_dir}_${sample}"  // unique key for each sample sheet entry
-        def genbank_path = file("${params.reference_dir}/${sample}.gb")
-        def barcode_path = file("${params.fastq_dir}/${barcode_dir}")
-        def fastq_files = barcode_path.listFiles()  // multiple FASTQ in each barcode
-
-        return [entry, barcode_dir, barcode_path, fastq_files, sample, genbank_path]
-        }
-    .set { entries_ch }
-
-
 process convertGenbank {
     publishDir 'results/dir2_analysis/n1_ref_fasta', mode: 'copy', pattern: '*.fa'  // need only the fasta
 
@@ -62,7 +30,6 @@ process convertGenbank {
         """
 }
 
-
 process runNanoFilt {
     publishDir 'results/dir2_analysis/n2_fastq_filtered', mode: 'copy', pattern: '*.fastq'  // need only the fastq
 
@@ -80,7 +47,7 @@ process runNanoFilt {
 
         max_length = seq_length * params.max_len_fraction
         """
-        cat $fastqFileString | NanoFilt -l $min_length --maxlength $max_length -q $quality_cutoff > $fastq_file
+        cat $fastqFileString | NanoFilt -l $params.min_length --maxlength $max_length -q $params.quality_cutoff > $fastq_file
         """
 }
 
@@ -124,7 +91,6 @@ process alignEntries {
         samtools index $bam_file $bai_file
         """
 }
-
 
 process callVariants {
     publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy', pattern: '*.vcf'
@@ -182,14 +148,6 @@ process writeCSV {
         echo "$params.projectname,$entry,$barcode,$sample,$sample_fasta,$filtered_vcf_file,$paf_file,$counts_tsv,$consensus_fa_file" >> $samplesheet_csv
         """    
 }
-
-
-Channel
-    .fromPath(params.sample_sheet)
-    .splitCsv(header: true)
-    .unique { row -> row['Sample'] }
-    .map { row -> file(params.reference_dir + '/' + row['Sample'] + '.gb') }
-    .set { genbank_ch }
 
 process runEdiacara {
     publishDir 'results/dir2_analysis/n7_results', mode: 'copy'
@@ -292,13 +250,17 @@ process runEdiacara {
 }
 
 
-workflow {
-    convertGenbank(entries_ch)
-    runNanoFilt(convertGenbank.out)
-    runNanoPlot(runNanoFilt.out.fastq_filtered_ch)
-    alignEntries(runNanoFilt.out.entries_fasta_fastq_ch)
-    callVariants(alignEntries.out)
-    callConsensus(callVariants.out)
-    writeCSV(callConsensus.out)
-    runEdiacara(writeCSV.out.paf_file_ch.collect(), writeCSV.out.counts_tsv_ch.collect(), writeCSV.out.filtered_vcf_file_ch.collect(), writeCSV.out.consensus_fa_file_ch.collect(), genbank_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
+workflow analysis_workflow {
+    take:
+        entries_ch
+        genbank_ch
+    main:
+        convertGenbank(entries_ch)
+        runNanoFilt(convertGenbank.out)
+        runNanoPlot(runNanoFilt.out.fastq_filtered_ch)
+        alignEntries(runNanoFilt.out.entries_fasta_fastq_ch)
+        callVariants(alignEntries.out)
+        callConsensus(callVariants.out)
+        writeCSV(callConsensus.out)
+        runEdiacara(writeCSV.out.paf_file_ch.collect(), writeCSV.out.counts_tsv_ch.collect(), writeCSV.out.filtered_vcf_file_ch.collect(), writeCSV.out.consensus_fa_file_ch.collect(), genbank_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
 }
