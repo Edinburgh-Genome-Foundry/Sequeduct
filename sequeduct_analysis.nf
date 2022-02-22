@@ -1,4 +1,5 @@
 #!/usr/bin/env nextflow
+nextflow.enable.dsl=2
 
 params.sample_sheet = ''  // CSV of the sample ~ barcode relations. Columns: Sample,Barcode_dir (may have other)
 params.reference_dir = ''  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
@@ -36,10 +37,10 @@ process convertGenbank {
     publishDir 'results/dir2_analysis/n1_ref_fasta', mode: 'copy', pattern: '*.fa'  // need only the fasta
 
     input:
-        tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_path) from entries_ch
+        tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_path)
 
     output:
-        tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), path(sample_fasta), stdout into entries_fasta_ch  // stdout for seq length
+        tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), path(sample_fasta), stdout // stdout for seq length
 
     script:
         sample_fasta = sample + '.fa'
@@ -66,11 +67,11 @@ process runNanoFilt {
     publishDir 'results/dir2_analysis/n2_fastq_filtered', mode: 'copy', pattern: '*.fastq'  // need only the fastq
 
     input:
-        tuple val(entry), val(barcode), path(barcode_path), val(fastq_files), val(sample), path(sample_fasta), val(seq_length) from entries_fasta_ch
+        tuple val(entry), val(barcode), path(barcode_path), val(fastq_files), val(sample), path(sample_fasta), val(seq_length)
 
     output:
-        tuple val(entry), val(barcode), path(fastq_file) into fastq_filtered_ch
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file) into entries_fasta_fastq_ch
+        tuple val(entry), val(barcode), path(fastq_file), emit: fastq_filtered_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), emit: entries_fasta_fastq_ch
 
     script:
         fastq_file = barcode + '.fastq'  // need for output
@@ -87,10 +88,10 @@ process runNanoPlot {
     publishDir 'results/dir2_analysis/n3_nanoplots', mode: 'copy'
 
     input:
-        tuple val(entry), val(barcode), path(fastq_file) from fastq_filtered_ch
+        tuple val(entry), val(barcode), path(fastq_file)
 
     output:
-        path barcode into nanoplots
+        path barcode
 
     script:
         """
@@ -98,14 +99,14 @@ process runNanoPlot {
         """
 }
 
-process AlignEntries {
+process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file) from entries_fasta_fastq_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file)
 
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv) into entries_aligned_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv)
 
     script:
         sam_file = entry + '.sam'
@@ -129,10 +130,10 @@ process callVariants {
     publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy', pattern: '*.vcf'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv) from entries_aligned_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv)
 
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file) into entries_vcf_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file)
 
     script:
         vcf_file = entry + '.vcf'
@@ -145,10 +146,10 @@ process callConsensus {
     publishDir 'results/dir2_analysis/n6_consensus', mode: 'copy', pattern: '*_consensus.fa'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file) from entries_vcf_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file)
 
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file) into entries_out_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file)
 
     script:
         vcf_gz_file = entry + '.vcf.gz'
@@ -167,13 +168,13 @@ process callConsensus {
 
 process writeCSV {
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file) from entries_out_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file)
     output:
-        path samplesheet_csv into samplesheet_csv_ch
-        path paf_file into paf_file_ch
-        path counts_tsv into counts_tsv_ch
-        path filtered_vcf_file into filtered_vcf_file_ch
-        path consensus_fa_file into consensus_fa_file_ch
+        path samplesheet_csv, emit: samplesheet_csv_ch
+        path paf_file, emit: paf_file_ch
+        path counts_tsv, emit: counts_tsv_ch
+        path filtered_vcf_file, emit: filtered_vcf_file_ch
+        path consensus_fa_file, emit: consensus_fa_file_ch
     script:
         samplesheet_csv = "entries.csv"
         // order is important, see Python script:
@@ -194,14 +195,14 @@ process runEdiacara {
     publishDir 'results/dir2_analysis/n7_results', mode: 'copy'
 
     input:
-        file paf from paf_file_ch.collect()
-        file counts_tsv from counts_tsv_ch.collect()
-        file filtered_vcf_file from filtered_vcf_file_ch.collect()
-        file consensus_fa_file from consensus_fa_file_ch.collect()
-        path genbank from genbank_ch.collect()
-        path samplesheet_csv from samplesheet_csv_ch.collectFile()
+        file paf
+        file counts_tsv
+        file filtered_vcf_file
+        file consensus_fa_file
+        path genbank
+        path samplesheet_csv
     output:
-        tuple path(pdf_file), path(results_csv_file), path(samplesheet_csv) into results_ch
+        tuple path(pdf_file), path(results_csv_file), path(samplesheet_csv)
     script:
         pdf_file = "Ediacara_report.pdf"
         results_csv_file = "results.csv"
@@ -288,4 +289,16 @@ process runEdiacara {
         results_table.to_csv('$results_csv_file', index=False)
         print('Done')
         """
+}
+
+
+workflow {
+    convertGenbank(entries_ch)
+    runNanoFilt(convertGenbank.out)
+    runNanoPlot(runNanoFilt.out.fastq_filtered_ch)
+    alignEntries(runNanoFilt.out.entries_fasta_fastq_ch)
+    callVariants(alignEntries.out)
+    callConsensus(callVariants.out)
+    writeCSV(callConsensus.out)
+    runEdiacara(writeCSV.out.paf_file_ch.collect(), writeCSV.out.counts_tsv_ch.collect(), writeCSV.out.filtered_vcf_file_ch.collect(), writeCSV.out.consensus_fa_file_ch.collect(), genbank_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
 }
