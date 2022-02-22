@@ -1,33 +1,6 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-params.results_csv = ''  // CSV of the sample ~ barcode relations. Columns: Barcode,Sample,Result,Review_consensus,Review_de_novo (may have other)
-params.reference_dir = ''  // dir of reference sequence Genbank files. Filenames (without extension) must match 'Sample' column entries
-
-params.assembly_plan = ''  // Optional: the assembly plan CSV of the DNA constructs, one per line: Sample,Part_1,Part_2, etc. Must have a header line.
-params.all_parts = ''  // FASTA file that contains all sequences to compare against
-
-
-params.fastq_filtered_dir = 'results/dir2_analysis/n2_fastq_filtered'  // The directory that contains the filtered FASTQ files
-params.consensus_dir = 'results/dir2_analysis/n6_consensus'  // contains the consensus FASTA sequences
-
-params.barcode_prefix = 'barcode'  // The prefix for the individual barcode directories as output by the sequencer
-
-params.projectname = 'Noname'  // display in PDF
-
-params.consensus_columname = 'Review_consensus'
-params.consensus_true = '1'  // marker for performing review
-
-params.denovo_columname = 'Review_de_novo'
-params.denovo_true = '1'  // marker for performing review
-
-assembly_prefix = 'egf'
-canu_postfix = '.contigs.fasta'  // hardcoded into canu
-
-
-parts_path = file(params.all_parts)
-plan_path = file(params.assembly_plan)
-
 ///////////////////////////////////////////////////////////////////////////////
 // Variant call consensus sequence review
 
@@ -118,7 +91,7 @@ process runReview {
             assembly = edi.Assembly(assembly_path=row['consensus'],
                                     reference_path=row['gb'],
                                     alignment_path=row['paf'],
-                                    assembly_plan="$plan_path")
+                                    assembly_plan="$params.plan_path")
             consensus_list += [assembly]
 
         assemblybatch = edi.AssemblyBatch(assemblies=consensus_list, name="$params.projectname")
@@ -133,7 +106,7 @@ workflow review_consensus {
     take: entries_ch
     main:
         convertGenbank(entries_ch)
-        alignParts(convertGenbank.out, parts_path)
+        alignParts(convertGenbank.out, params.parts_path)
         writeCSV(alignParts.out.alignment_ch)
         runReview(writeCSV.out.paf_file_ch.collect(), writeCSV.out.consensus_path_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
 }
@@ -179,7 +152,7 @@ process assembleDeNovo {
         assembly_dir = barcode + '_assembly'
         genomsize_param = 'genomeSize=' + seq_length + 'k'
         """
-        canu -p $assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
+        canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
         """
 }
 
@@ -197,7 +170,7 @@ process trimAssembly {
         #!/usr/bin/env python
         from Bio import SeqIO
 
-        canu_fasta = "$assembly_dir" + '/' + "$assembly_prefix" + "$canu_postfix"
+        canu_fasta = "$assembly_dir" + '/' + "$params.assembly_prefix" + "$params.canu_postfix"
         try:
             contig = SeqIO.read(canu_fasta, format="fasta")
         except:
@@ -285,7 +258,7 @@ process runReview_de_novo {
             assembly = edi.Assembly(assembly_path=row['de_novo'],
                                     reference_path=row['gb'],
                                     alignment_path=row['paf'],
-                                    assembly_plan="$plan_path")
+                                    assembly_plan="$params.plan_path")
             consensus_list += [assembly]
 
         assemblybatch = edi.AssemblyBatch(assemblies=consensus_list, name="$params.projectname")
@@ -302,50 +275,7 @@ workflow review_denovo {
         convertGenbank_de_novo(entries_de_novo_ch)
         assembleDeNovo(convertGenbank_de_novo.out)
         trimAssembly(assembleDeNovo.out)
-        alignParts_de_novo(trimAssembly.out, parts_path)
+        alignParts_de_novo(trimAssembly.out, params.parts_path)
         writeCSV_de_novo(alignParts_de_novo.out)
         runReview_de_novo(writeCSV_de_novo.out.paf_file_de_novo_ch.collect(), writeCSV_de_novo.out.genbank_path_ch.collect(), writeCSV_de_novo.out.trimmed_de_novo_fa_ch.collect(), writeCSV_de_novo.out.samplesheet_csv_de_novo_ch.collectFile())
-}
-
-
-workflow {
-
-    Channel
-        .fromPath(params.results_csv)
-        .splitCsv(header: true)
-        .filter { item -> item[params.consensus_columname] == params.consensus_true}
-        
-        .map { row -> 
-            def barcode = row['Barcode']  // a barcode is present only once -- no pooling
-            def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
-            def entry = "${barcode}_${sample}"  // unique key for each sample sheet entry
-            def result = row["Result"]
-            def genbank_path = file("${params.reference_dir}/${sample}.gb")
-            def consensus_path = file("${params.consensus_dir}/${entry}_consensus.fa")
-            return [entry, barcode, sample, result, genbank_path, consensus_path]
-            }
-        .set { entries_ch }
-
-    Channel
-        .fromPath(params.results_csv)
-        .splitCsv(header: true)
-        // .unique { row -> row['Barcode_dir'] }
-        .filter { item -> item[params.denovo_columname] == params.denovo_true}
-        
-        .map { row -> 
-            def barcode = row['Barcode']  // a barcode is present only once -- no pooling
-            def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
-            def entry = "${barcode}_${sample}"  // unique key for each sample sheet entry
-            def result = row["Result"]
-            def genbank_path = file("${params.reference_dir}/${sample}.gb")
-            def fastq_path = file("${params.fastq_filtered_dir}/${barcode}.fastq")
-            // def assembly_dir = file("${params.reference_dir}/${sample}.gb")
-            return [entry, barcode, sample, result, genbank_path, fastq_path]
-            }
-        .set { entries_de_novo_ch }
-
-
-    review_consensus(entries_ch)
-
-    review_denovo(entries_de_novo_ch)
 }
