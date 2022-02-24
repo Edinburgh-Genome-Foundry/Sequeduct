@@ -67,7 +67,10 @@ process runNanoPlot {
 }
 
 process alignEntries {
-    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy'
+    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.paf'
+    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bam'
+    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bai'
+    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file)
