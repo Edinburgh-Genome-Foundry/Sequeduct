@@ -272,6 +272,8 @@ process runReview_de_novo {
 workflow review_denovo {
     take: entries_de_novo_ch
     main:
+        params.parts_path = file(params.all_parts)
+        params.plan_path = file(params.assembly_plan)
         convertGenbank_de_novo(entries_de_novo_ch)
         assembleDeNovo(convertGenbank_de_novo.out)
         trimAssembly(assembleDeNovo.out)

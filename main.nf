@@ -30,8 +30,6 @@ params.denovo_true = '1'  // marker for performing review
 params.assembly_prefix = 'egf'
 params.canu_postfix = '.contigs.fasta'  // hardcoded into canu
 
-params.parts_path = file(params.all_parts)
-params.plan_path = file(params.assembly_plan)
 //
 
 include { preview_workflow } from "$projectDir/nextflow/sequeduct_preview.nf"
