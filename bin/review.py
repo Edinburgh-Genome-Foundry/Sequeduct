@@ -6,7 +6,6 @@ params_plan_path = sys.argv[2]
 params_projectname = sys.argv[3]
 pdf_file = sys.argv[4]
 
-import os
 import pandas as pd
 import ediacara as edi
 

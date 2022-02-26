@@ -222,29 +222,7 @@ process runReview_de_novo {
     script:
         pdf_file = "de_novo_review.pdf"
         """
-        #!/usr/bin/env python
-
-        import os
-        import pandas as pd
-        import ediacara as edi
-
-        entries = pd.read_csv("$samplesheet_csv", header=None)
-        # see process writeCSV for columns:
-        entries.columns = ['project', 'entry', 'barcode', 'sample', 'result', 'gb', 'fa', 'de_novo', 'paf', ]
-        entries.sort_values(by=['barcode', 'sample'], inplace=True)  # have them in order in the pdf
-
-        consensus_list = []
-        for index, row in entries.iterrows():
-            assembly = edi.Assembly(assembly_path=row['de_novo'],
-                                    reference_path=row['gb'],
-                                    alignment_path=row['paf'],
-                                    assembly_plan="$params.plan_path_denovo")
-            consensus_list += [assembly]
-
-        assemblybatch = edi.AssemblyBatch(assemblies=consensus_list, name="$params.projectname")
-        assemblybatch.perform_all_interpretations_in_group()
-
-        edi.write_assembly_analysis_report("$pdf_file", assemblybatch)
+        review.py "$samplesheet_csv" "$params.plan_path_denovo" "$params.projectname" "$pdf_file"
         """
 }
 
