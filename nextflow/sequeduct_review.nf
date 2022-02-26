@@ -238,7 +238,7 @@ process runReview_de_novo {
             assembly = edi.Assembly(assembly_path=row['de_novo'],
                                     reference_path=row['gb'],
                                     alignment_path=row['paf'],
-                                    assembly_plan="$params.plan_path")
+                                    assembly_plan="$params.plan_path_denovo")
             consensus_list += [assembly]
 
         assemblybatch = edi.AssemblyBatch(assemblies=consensus_list, name="$params.projectname")
@@ -252,12 +252,12 @@ process runReview_de_novo {
 workflow review_denovo {
     take: entries_de_novo_ch
     main:
-        params.parts_path = file(params.all_parts)
-        params.plan_path = file(params.assembly_plan)
+        params.parts_path_denovo = file(params.all_parts)
+        params.plan_path_denovo = file(params.assembly_plan)
         convertGenbank_de_novo(entries_de_novo_ch)
         assembleDeNovo(convertGenbank_de_novo.out)
         trimAssembly(assembleDeNovo.out)
-        alignParts_de_novo(trimAssembly.out, params.parts_path)
+        alignParts_de_novo(trimAssembly.out, params.parts_path_denovo)
         writeCSV_de_novo(alignParts_de_novo.out)
         runReview_de_novo(writeCSV_de_novo.out.paf_file_de_novo_ch.collect(), writeCSV_de_novo.out.genbank_path_ch.collect(), writeCSV_de_novo.out.trimmed_de_novo_fa_ch.collect(), writeCSV_de_novo.out.samplesheet_csv_de_novo_ch.collectFile())
 }
