@@ -14,19 +14,7 @@ process convertGenbank {
         sample_fasta = sample + '.fa'
 
         """
-        #!/usr/bin/env python
-
-        import os
-        from Bio import SeqIO
-
-        # Genbank in
-        record = SeqIO.read("$genbank_path", "genbank")
-        record.id = "$sample"
-        # FASTA out
-        with open("$sample_fasta", "w") as output_handle:
-            SeqIO.write(record, output_handle, "fasta")
-
-        print(len(record), end="")
+        convert_genbank.py "$genbank_path" "$sample" "$sample_fasta" "length"
         """
 }
 
