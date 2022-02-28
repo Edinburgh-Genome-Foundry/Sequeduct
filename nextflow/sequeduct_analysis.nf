@@ -14,7 +14,7 @@ process convertGenbank {
         sample_fasta = sample + '.fa'
 
         """
-        convert_genbank.py "$genbank_path" "$sample" "$sample_fasta" "length"
+        convert_genbank.py "$genbank_path" "$sample" "$sample_fasta" "$params.max_len_fraction" "length"
         """
 }
 
@@ -33,9 +33,8 @@ process runNanoFilt {
 
         fastqFileString = fastq_files.join(' ')  // need as one string for cat
 
-        max_length = seq_length * params.max_len_fraction
         """
-        cat $fastqFileString | NanoFilt -l $params.min_length --maxlength $max_length -q $params.quality_cutoff > $fastq_file
+        cat $fastqFileString | NanoFilt -l $params.min_length --maxlength $seq_length -q $params.quality_cutoff > $fastq_file
         """
 }
 

@@ -4,7 +4,8 @@ import sys
 genbank_path = sys.argv[1]  # skip first filename
 sample = sys.argv[2]
 sample_fasta = sys.argv[3]
-flag = sys.argv[4]
+max_len_fraction = sys.argv[4]
+flag = sys.argv[5]
 
 from Bio import SeqIO
 
@@ -18,6 +19,7 @@ with open(sample_fasta, "w") as output_handle:
 if flag == "none":
     pass  # no need for stdout
 elif flag == "length":
-    print(len(record), end="")
+    cutoff_length = int(float(len(record)) * float(max_len_fraction))
+    print(cutoff_length, end="")
 elif flag == "canu":
     print(str(round(len(record) / 1000)), end="")  # to get k value for canu
