@@ -4,7 +4,7 @@
 
 # Sequeduct
 
-![version](https://img.shields.io/badge/current_version-0.1.0-blue)
+![version](https://img.shields.io/badge/current_version-0.1.1-blue)
 
 Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly constructs, using long reads.
 
