@@ -94,7 +94,7 @@ process callVariants {
     script:
         vcf_file = entry + '.vcf'
         """
-        freebayes --ploidy 1 --min-alternate-fraction 0.1 --min-alternate-count 2 -f $sample_fasta $bam_file > $vcf_file
+        freebayes $params.freebayes.args -f $sample_fasta $bam_file > $vcf_file
         """
 }
 
