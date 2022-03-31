@@ -73,7 +73,7 @@ process alignEntries {
         bam_file = entry + '_sorted.bam'
         bai_file = entry + '_sorted.bam.bai'  // index file
         """
-        minimap2 -a $sample_fasta $fastq_file > $sam_file
+        minimap2 -ax map-ont $sample_fasta $fastq_file > $sam_file
         paftools.js sam2paf $sam_file > $paf_file
         samtools sort -O sam -T sample.sort -o $sorted_sam_file $sam_file
         samtools depth -aa $sorted_sam_file > $counts_tsv
