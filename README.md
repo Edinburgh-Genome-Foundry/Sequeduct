@@ -51,6 +51,12 @@ nextflow run main.nf -entry review --reference_dir='genbank' \
 
 The above three commands each output a directory in `results`. Similarly, NextFlow creates and uses a directory named `work`, so ensure that your project directory doesn't have one.
 
+### Details
+
+Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A [fix has been posted](https://github.com/marbl/canu/issues/2035), but it's not released yet.
+
+For convenience, a script is included to collect plot files from the result directories (`bin/collect_plots.py`).
+
 ## Build the image locally
 
 ```bash
