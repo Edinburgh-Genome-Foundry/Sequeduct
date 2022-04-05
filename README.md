@@ -14,10 +14,10 @@ Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly
 
 Install [Nextflow](https://www.nextflow.io/) and [Docker](https://www.docker.com/).
 
-Download the pipeline:
+Set up [credentials in the SCM configuration file](https://www.nextflow.io/docs/latest/sharing.html#github-credentials), then pull the Nextflow image:
 
 ```bash
-git clone git@github.com:Edinburgh-Genome-Foundry/Sequeduct.git
+nextflow pull edinburgh-genome-foundry/Sequeduct
 ```
 
 Pull the Docker image that contains the required software:
@@ -32,16 +32,16 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 
 ```bash
 # Preview
-nextflow run main.nf -entry preview --fastq_dir='fastq' --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r main -entry preview --fastq_dir='fastq' --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     -with-docker ghcr.io/edinburgh-genome-foundry/sequeduct
 # Analysis
-nextflow run main.nf -entry analysis --fastq_dir='fastq' --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r main -entry analysis --fastq_dir='fastq' --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
     -with-docker ghcr.io/edinburgh-genome-foundry/sequeduct
 # Review
-nextflow run main.nf -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r main -entry review --reference_dir='genbank' \
     --results_csv='results_finalised.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
