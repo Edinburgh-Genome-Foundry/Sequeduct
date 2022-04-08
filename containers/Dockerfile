@@ -63,3 +63,13 @@ ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
 ########################################################################################
 COPY Ediacara /opt/Ediacara
 RUN pip install --no-cache-dir /opt/Ediacara
+########################################################################################
+# Opencontainer labels
+LABEL org.opencontainers.image.title="sequeduct"
+LABEL org.opencontainers.image.description="Sequencing analysis pipeline for validating DNA assembly constructs"
+LABEL org.opencontainers.image.url="https://github.com/edinburgh-genome-foundry/sequeduct"
+LABEL org.opencontainers.image.documentation="https://github.com/edinburgh-genome-foundry/sequeduct"
+LABEL org.opencontainers.image.source="https://github.com/edinburgh-genome-foundry/sequeduct/"
+LABEL org.opencontainers.image.vendor="edinburgh-genome-foundry"
+LABEL org.opencontainers.image.authors="Peter Vegh"
+LABEL org.opencontainers.image.revision="v0.1.1"
