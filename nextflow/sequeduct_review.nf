@@ -74,7 +74,12 @@ workflow review_consensus {
     take: entries_ch
     main:
         params.parts_path = file(params.all_parts)
-        params.plan_path = file(params.assembly_plan)
+        if( params.assembly_plan == "noplan" ) {
+            params.plan_path = "noplan"
+        }
+        else {
+            params.plan_path = file(params.assembly_plan)
+        }
         convertGenbank(entries_ch)
         alignParts(convertGenbank.out, params.parts_path)
         writeCSV(alignParts.out.alignment_ch)
@@ -209,7 +214,12 @@ workflow review_denovo {
     take: entries_de_novo_ch
     main:
         params.parts_path_denovo = file(params.all_parts)
-        params.plan_path_denovo = file(params.assembly_plan)
+        if( params.assembly_plan == "noplan" ) {
+            params.plan_path_denovo = "noplan"
+        }
+        else {
+            params.plan_path_denovo = file(params.assembly_plan)
+        }
         convertGenbank_de_novo(entries_de_novo_ch)
         assembleDeNovo(convertGenbank_de_novo.out)
         trimAssembly(assembleDeNovo.out)

@@ -26,13 +26,17 @@ entries.sort_values(
     by=["barcode", "sample"], inplace=True
 )  # have them in order in the pdf
 
+if params_plan_path == "noplan":
+    assembly_plan = None
+else:
+    assembly_plan = params_plan_path
 consensus_list = []
 for index, row in entries.iterrows():
     assembly = edi.Assembly(
         assembly_path=row["consensus"],
         reference_path=row["gb"],
         alignment_path=row["paf"],
-        assembly_plan=params_plan_path,
+        assembly_plan=assembly_plan,
     )
     consensus_list += [assembly]
 
