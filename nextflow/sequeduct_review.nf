@@ -146,6 +146,7 @@ process trimAssembly {
             elements = entry.split("=")
             desc_dict[elements[0]] = elements[1]
 
+        # canu assembly: 0-based, from-index inclusive, end-index exclusive
         if desc_dict["suggestCircular"] == "yes":  # as output by canu
             start, end = desc_dict["trim"].split("-")  # must contain 2 values
             start = int(start)
