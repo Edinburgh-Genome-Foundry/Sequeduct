@@ -32,24 +32,24 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 
 ```bash
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r main -entry preview --fastq_dir='fastq' --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.0 -entry preview --fastq_dir='fastq' --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
-    -with-docker ghcr.io/edinburgh-genome-foundry/sequeduct
+    -profile docker
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r main -entry analysis --fastq_dir='fastq' --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.0 -entry analysis --fastq_dir='fastq' --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
-    -with-docker ghcr.io/edinburgh-genome-foundry/sequeduct
+    -profile docker
 # Review
-nextflow run edinburgh-genome-foundry/Sequeduct -r main -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.0 -entry review --reference_dir='genbank' \
     --results_csv='results_finalised.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
     --assembly_plan='assembly_plan.csv' \
-    -with-docker ghcr.io/edinburgh-genome-foundry/sequeduct
+    -profile docker
 ```
 
-The above three commands each output a directory in `results`. Similarly, NextFlow creates and uses a directory named `work`, so ensure that your project directory doesn't have one.
+The above three commands each output a directory within `results`. Similarly, Nextflow creates and uses a directory named `work`, so ensure that your project directory doesn't have one. Specify revision of the project with `-r` (a git branch or tag), and choose a configuration profile (with `-profile`). Profiles are specified in the Nextflow config files.
 
 ### Details
 
