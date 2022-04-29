@@ -4,7 +4,7 @@
 
 # Sequeduct
 
-![version](https://img.shields.io/badge/current_version-0.2.0-blue)
+![version](https://img.shields.io/badge/current_version-0.2.1-blue)
 
 Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly constructs, using long reads.
 
@@ -32,16 +32,16 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 
 ```bash
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.0 -entry preview --fastq_dir='fastq' --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.1 -entry preview --fastq_dir='fastq' --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     -profile docker
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.0 -entry analysis --fastq_dir='fastq' --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.1 -entry analysis --fastq_dir='fastq' --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
     -profile docker
 # Review
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.0 -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.1 -entry review --reference_dir='genbank' \
     --results_csv='results_finalised.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
