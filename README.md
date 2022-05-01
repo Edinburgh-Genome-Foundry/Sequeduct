@@ -17,7 +17,7 @@ Install [Nextflow](https://www.nextflow.io/) and [Docker](https://www.docker.com
 Set up [credentials in the SCM configuration file](https://www.nextflow.io/docs/latest/sharing.html#github-credentials), then pull the Nextflow image:
 
 ```bash
-nextflow pull edinburgh-genome-foundry/Sequeduct
+nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.2.1
 ```
 
 Pull the Docker image that contains the required software:
