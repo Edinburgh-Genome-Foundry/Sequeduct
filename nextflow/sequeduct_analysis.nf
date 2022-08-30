@@ -110,15 +110,17 @@ process callConsensus {
     script:
         vcf_gz_file = entry + '.vcf.gz'
         filtered_vcf_file = entry + '_filtered.vcf'
-        filtered_vcf_gz_file = entry + '_filtered.vcf.gz'
+        double_filtered_vcf_file = entry + '_double_filtered.vcf'
+        double_filtered_vcf_gz_file = entry + '_double_filtered.vcf.gz'
         consensus_fa_file = entry + '_consensus.fa'
         """
         bgzip --keep --index $vcf_file
         bcftools index $vcf_gz_file
         bcftools filter --output-type v -i'%QUAL>10' $vcf_gz_file > $filtered_vcf_file
-        bgzip --keep --index $filtered_vcf_file
-        bcftools index $filtered_vcf_gz_file
-        bcftools consensus --fasta-ref $sample_fasta --output $consensus_fa_file $filtered_vcf_gz_file
+        filter_vcf.py "$filtered_vcf_file" "$double_filtered_vcf_file"
+        bgzip --keep --index $double_filtered_vcf_file
+        bcftools index $double_filtered_vcf_gz_file
+        bcftools consensus --fasta-ref $sample_fasta --output $consensus_fa_file $double_filtered_vcf_gz_file
         """
 }
 
