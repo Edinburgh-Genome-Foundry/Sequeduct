@@ -6,6 +6,7 @@ include { preview_workflow } from "$projectDir/nextflow/sequeduct_preview.nf"
 include { analysis_workflow } from "$projectDir/nextflow/sequeduct_analysis.nf"
 include { review_consensus } from "$projectDir/nextflow/sequeduct_review.nf"
 include { review_denovo } from "$projectDir/nextflow/sequeduct_review.nf"
+include { assemble_denovo } from "$projectDir/nextflow/sequeduct_review.nf"
 
 
 workflow preview {
@@ -91,4 +92,20 @@ workflow review {
     review_consensus(entries_ch)
 
     review_denovo(entries_de_novo_ch)
+}
+
+
+workflow assembly {
+    Channel
+        .fromPath(params.results_csv)
+        .splitCsv(header: true)
+        
+        .map { row -> 
+            def barcode = row['Barcode']  // a barcode is present only once -- no pooling
+            def fastq_path = file("${params.fastq_filtered_dir}/${barcode}.fastq")
+            return [barcode, fastq_path]
+            }
+        .set { entries_assembly_ch }
+
+   assemble_denovo(entries_assembly_ch)
 }

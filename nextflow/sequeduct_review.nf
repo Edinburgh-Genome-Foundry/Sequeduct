@@ -210,6 +210,26 @@ process runReview_de_novo {
         """
 }
 
+// For assembly workflow only:
+
+process assembleOnly {
+    publishDir 'results/dir4_review/n1_de_novo_assembly', mode: 'copy'
+    
+    input:
+        tuple val(barcode), path(fastq_path)
+    output:
+        tuple val(barcode), path(assembly_dir)
+    script:
+        assembly_dir = barcode + '_assembly'
+        // genomsize_param = 'genomeSize=' + seq_length + 'k'
+        genomsize_param = 'genomeSize=8k'
+        """
+        canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
+        """
+}
+
+
+// Workflows:
 
 workflow review_denovo {
     take: entries_de_novo_ch
@@ -227,4 +247,12 @@ workflow review_denovo {
         alignParts_de_novo(trimAssembly.out, params.parts_path_denovo)
         writeCSV_de_novo(alignParts_de_novo.out)
         runReview_de_novo(writeCSV_de_novo.out.paf_file_de_novo_ch.collect(), writeCSV_de_novo.out.genbank_path_ch.collect(), writeCSV_de_novo.out.trimmed_de_novo_fa_ch.collect(), writeCSV_de_novo.out.samplesheet_csv_de_novo_ch.collectFile())
+}
+
+
+workflow assemble_denovo {
+    take: entries_assembly_ch
+    main:
+        assembleOnly(entries_assembly_ch)
+        // trimAssembly(assembleDeNovo.out)
 }
