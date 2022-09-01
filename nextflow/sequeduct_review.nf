@@ -213,7 +213,7 @@ process runReview_de_novo {
 // For assembly workflow only:
 
 process assembleOnly {
-    publishDir 'results/dir4_review/n1_de_novo_assembly', mode: 'copy'
+    publishDir 'results/dir4_assembly/n1_de_novo_assembly', mode: 'copy'
     
     input:
         tuple val(barcode), path(fastq_path)
@@ -225,6 +225,47 @@ process assembleOnly {
         genomsize_param = 'genomeSize=8k'
         """
         canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
+        """
+}
+
+
+process trimAssemblyOnly {
+    publishDir 'results/dir4_assembly/n2_assembly_trimmed', mode: 'copy', pattern: '*_denovo.fasta'
+
+    input:
+        tuple val(barcode), path(assembly_dir)
+    output:
+        tuple val(barcode), path(assembly_dir), path(trimmed_denovo)
+    
+    script:
+        trimmed_denovo = barcode + '_denovo.fasta'
+        """
+        #!/usr/bin/env python
+        from Bio import SeqIO
+
+        canu_fasta = "$assembly_dir" + '/' + "$params.assembly_prefix" + "$params.canu_postfix"
+        try:
+            contig = SeqIO.read(canu_fasta, format="fasta")
+        except:
+            print("The FASTA file contains more than 1 contigs. First contig used.")
+            contig = next(SeqIO.parse(canu_fasta, format="fasta"))
+
+        entries = contig.description.split(" ")
+        desc_dict = {"name": entries[0]}  # first is the name
+        for entry in entries[1:]:  # addressed the first one above
+            elements = entry.split("=")
+            desc_dict[elements[0]] = elements[1]
+
+        # canu assembly: 0-based, from-index inclusive, end-index exclusive
+        if desc_dict["suggestCircular"] == "yes":  # as output by canu
+            start, end = desc_dict["trim"].split("-")  # must contain 2 values
+            start = int(start)
+            end = int(end)
+            SeqIO.write(contig[start:end], "$trimmed_denovo", format="fasta")
+        else:  # keep intact
+            SeqIO.write(contig, "$trimmed_denovo", format="fasta")
+        
+        print("Trimmed:", "$barcode")
         """
 }
 
@@ -254,5 +295,5 @@ workflow assemble_denovo {
     take: entries_assembly_ch
     main:
         assembleOnly(entries_assembly_ch)
-        // trimAssembly(assembleDeNovo.out)
+        trimAssemblyOnly(assembleOnly.out)
 }
