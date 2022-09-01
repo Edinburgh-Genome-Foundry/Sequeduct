@@ -216,13 +216,12 @@ process assembleOnly {
     publishDir 'results/dir4_assembly/n1_de_novo_assembly', mode: 'copy'
     
     input:
-        tuple val(barcode), path(fastq_path)
+        tuple val(barcode), path(fastq_path), val(length)
     output:
         tuple val(barcode), path(assembly_dir)
     script:
         assembly_dir = barcode + '_assembly'
-        // genomsize_param = 'genomeSize=' + seq_length + 'k'
-        genomsize_param = 'genomeSize=8k'
+        genomsize_param = 'genomeSize=' + length + 'k'
         """
         canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
         """

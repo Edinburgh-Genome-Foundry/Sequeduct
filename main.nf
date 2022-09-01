@@ -102,8 +102,9 @@ workflow assembly {
         
         .map { row -> 
             def barcode = row['Barcode']  // a barcode is present only once -- no pooling
+            def length = row['Length']  // estimated length in kbp for canu genomeSize parameter
             def fastq_path = file("${params.fastq_filtered_dir}/${barcode}.fastq")
-            return [barcode, fastq_path]
+            return [barcode, fastq_path, length]
             }
         .set { entries_assembly_ch }
 
