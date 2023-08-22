@@ -167,7 +167,7 @@ process runEdiacara {
         pdf_file = "Ediacara_report.pdf"
         results_csv_file = "results.csv"
         """
-        analysis.py $samplesheet_csv "$params.projectname" $pdf_file $results_csv_file
+        analysis.py $samplesheet_csv "$params.projectname" $pdf_file $results_csv_file $params.low_depth_value
         """
 }
 

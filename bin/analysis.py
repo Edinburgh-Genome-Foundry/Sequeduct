@@ -15,6 +15,7 @@ samplesheet_csv = sys.argv[1]  # skip first filename
 params_projectname = sys.argv[2]
 pdf_file = sys.argv[3]
 results_csv_file = sys.argv[4]
+low_depth_value = sys.argv[5]
 
 import pandas as pd
 from Bio import SeqIO
@@ -75,7 +76,8 @@ for index, row in entries.iterrows():
 
 
 # Create PDF report
-sequencinggroup = edi.SequencingGroup(comparatorgroups, name=params_projectname)
+sequencinggroup = edi.SequencingGroup(comparatorgroups, name=params_projectname,
+                                      low_depth_cutoff=low_depth_value)
 sequencinggroup.perform_all_comparisons_in_sequencinggroup()
 edi.write_sequencinggroup_report(target=pdf_file, sequencinggroup=sequencinggroup)
 
