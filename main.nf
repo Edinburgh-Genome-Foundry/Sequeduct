@@ -77,6 +77,7 @@ workflow review {
             def entry = "${barcode}_${sample}"  // unique key for each sample sheet entry
             def result = row["Result"]
             def genbank_path = file("${params.reference_dir}/${sample}.gb")
+            // Note: sample name matches filename with ".gb" extension
             def consensus_path = file("${params.consensus_dir}/${entry}_consensus.fa")
             return [entry, barcode, sample, result, genbank_path, consensus_path]
             }
