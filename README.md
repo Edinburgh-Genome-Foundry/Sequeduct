@@ -72,9 +72,9 @@ Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A
 
 For convenience, a script is included to collect plot files from the result directories (`bin/collect_plots.py`).
 
-## Copyright
+## License = GPLv3+
 
-Copyright 2021 Edinburgh Genome Foundry
+Copyright 2021 Edinburgh Genome Foundry, University of Edinburgh
 
 Sequeduct was written at the [Edinburgh Genome Foundry](https://edinburgh-genome-foundry.github.io/)
-by [Peter Vegh](https://github.com/veghp).
+by [Peter Vegh](https://github.com/veghp), and is released under the GPLv3 license.
