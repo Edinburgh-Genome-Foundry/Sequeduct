@@ -95,9 +95,9 @@ workflow review_consensus {
         writeCSV(alignParts.out.alignment_ch)
         runReview(writeCSV.out.paf_file_ch.collect(), writeCSV.out.consensus_path_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // De novo assembly sequence review
-
 
 process convertGenbank_de_novo {
     input:
@@ -220,64 +220,6 @@ process runReview_de_novo {
         """
 }
 
-// For assembly workflow only:
-
-process assembleOnly {
-    publishDir 'results/dir4_assembly/n1_de_novo_assembly', mode: 'copy'
-    
-    input:
-        tuple val(barcode), path(fastq_path), val(length)
-    output:
-        tuple val(barcode), path(assembly_dir)
-    script:
-        assembly_dir = barcode + '_assembly'
-        genomsize_param = 'genomeSize=' + length + 'k'
-        """
-        canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
-        """
-}
-
-
-process trimAssemblyOnly {
-    publishDir 'results/dir4_assembly/n2_assembly_trimmed', mode: 'copy', pattern: '*_denovo.fasta'
-
-    input:
-        tuple val(barcode), path(assembly_dir)
-    output:
-        tuple val(barcode), path(assembly_dir), path(trimmed_denovo)
-    
-    script:
-        trimmed_denovo = barcode + '_denovo.fasta'
-        """
-        #!/usr/bin/env python
-        from Bio import SeqIO
-
-        canu_fasta = "$assembly_dir" + '/' + "$params.assembly_prefix" + "$params.canu_postfix"
-        try:
-            contig = SeqIO.read(canu_fasta, format="fasta")
-        except:
-            print("The FASTA file contains more than 1 contigs. First contig used.")
-            contig = next(SeqIO.parse(canu_fasta, format="fasta"))
-
-        entries = contig.description.split(" ")
-        desc_dict = {"name": entries[0]}  # first is the name
-        for entry in entries[1:]:  # addressed the first one above
-            elements = entry.split("=")
-            desc_dict[elements[0]] = elements[1]
-
-        # canu assembly: 0-based, from-index inclusive, end-index exclusive
-        if desc_dict["suggestCircular"] == "yes":  # as output by canu
-            start, end = desc_dict["trim"].split("-")  # must contain 2 values
-            start = int(start)
-            end = int(end)
-            SeqIO.write(contig[start:end], "$trimmed_denovo", format="fasta")
-        else:  # keep intact
-            SeqIO.write(contig, "$trimmed_denovo", format="fasta")
-        
-        print("Trimmed:", "$barcode")
-        """
-}
-
 
 // Workflows:
 
@@ -297,12 +239,4 @@ workflow review_denovo {
         alignParts_de_novo(trimAssembly.out, params.parts_path_denovo)
         writeCSV_de_novo(alignParts_de_novo.out)
         runReview_de_novo(writeCSV_de_novo.out.paf_file_de_novo_ch.collect(), writeCSV_de_novo.out.genbank_path_ch.collect(), writeCSV_de_novo.out.trimmed_de_novo_fa_ch.collect(), writeCSV_de_novo.out.samplesheet_csv_de_novo_ch.collectFile())
-}
-
-
-workflow assemble_denovo {
-    take: entries_assembly_ch
-    main:
-        assembleOnly(entries_assembly_ch)
-        trimAssemblyOnly(assembleOnly.out)
 }

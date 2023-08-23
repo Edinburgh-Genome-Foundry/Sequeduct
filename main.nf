@@ -16,8 +16,9 @@ include { preview_workflow } from "$projectDir/nextflow/sequeduct_preview.nf"
 include { analysis_workflow } from "$projectDir/nextflow/sequeduct_analysis.nf"
 include { review_consensus } from "$projectDir/nextflow/sequeduct_review.nf"
 include { review_denovo } from "$projectDir/nextflow/sequeduct_review.nf"
-include { assemble_denovo } from "$projectDir/nextflow/sequeduct_review.nf"
+include { assemble_denovo } from "$projectDir/nextflow/sequeduct_assembly.nf"
 
+///////////////////////////////////////////////////////////////////////////////
 
 workflow preview {
 
@@ -36,6 +37,8 @@ workflow preview {
 
     preview_workflow(input_ch)
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 workflow analysis {
 
@@ -63,6 +66,8 @@ workflow analysis {
 
     analysis_workflow(entries_ch, genbank_ch)
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 workflow review {
 
@@ -105,17 +110,19 @@ workflow review {
     review_denovo(entries_de_novo_ch)
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
 workflow assembly {
     Channel
-        .fromPath(params.results_csv)
+        .fromPath(params.assembly_sheet)
         .splitCsv(header: true)
         
         .map { row -> 
-            def barcode = row['Barcode']  // a barcode is present only once -- no pooling
+            def barcode = row['Barcode_dir']  // a barcode is present only once -- no pooling
             def length = row['Length']  // estimated length in kbp for canu genomeSize parameter
-            def fastq_path = file("${params.fastq_filtered_dir}/${barcode}.fastq")
-            return [barcode, fastq_path, length]
+            def barcode_path = file("${params.fastq_dir}/${barcode}")
+            def fastq_files = barcode_path.listFiles()
+            return [barcode, barcode_path, fastq_files, length]
             }
         .set { entries_assembly_ch }
 
