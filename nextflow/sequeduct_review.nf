@@ -140,32 +140,7 @@ process trimAssembly {
     script:
         trimmed_denovo = barcode + '_denovo.fasta'
         """
-        #!/usr/bin/env python
-        from Bio import SeqIO
-
-        canu_fasta = "$assembly_dir" + '/' + "$params.assembly_prefix" + "$params.canu_postfix"
-        try:
-            contig = SeqIO.read(canu_fasta, format="fasta")
-        except:
-            print("The FASTA file contains more than 1 contigs. First contig used.")
-            contig = next(SeqIO.parse(canu_fasta, format="fasta"))
-
-        entries = contig.description.split(" ")
-        desc_dict = {"name": entries[0]}  # first is the name
-        for entry in entries[1:]:  # addressed the first one above
-            elements = entry.split("=")
-            desc_dict[elements[0]] = elements[1]
-
-        # canu assembly: 0-based, from-index inclusive, end-index exclusive
-        if desc_dict["suggestCircular"] == "yes":  # as output by canu
-            start, end = desc_dict["trim"].split("-")  # must contain 2 values
-            start = int(start)
-            end = int(end)
-            SeqIO.write(contig[start:end], "$trimmed_denovo", format="fasta")
-        else:  # keep intact
-            SeqIO.write(contig, "$trimmed_denovo", format="fasta")
-        
-        print("Trimmed:", "$barcode")
+        trim_assembly.py "$assembly_dir" "$params.assembly_prefix" "$params.canu_postfix" "$trimmed_denovo" "$barcode"
         """
 }
 
