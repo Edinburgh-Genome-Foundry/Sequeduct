@@ -1,4 +1,4 @@
-FROM python:3.6
+FROM python:3.9
 ########################################################################################
 RUN apt-get update
 # weighted-levenshtein:
@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir weighted-levenshtein
 # GeneBlocks:
 RUN pip install --no-cache-dir biopython==1.78
 RUN apt-get install -y ncbi-blast+
-RUN pip install --no-cache-dir geneblocks
+RUN pip install --no-cache-dir geneblocks==1.2.3
 # Python packages:
 RUN pip install --no-cache-dir NanoPlot==1.38.1 nanofilt==2.8.0
 ########################################################################################
@@ -61,8 +61,7 @@ ENV PATH="/opt/canu-2.2/bin:$PATH"
 RUN apt-get install -y openjdk-11-jre-headless
 ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
 ########################################################################################
-COPY Ediacara /opt/Ediacara
-RUN pip install --no-cache-dir /opt/Ediacara
+RUN pip install --no-cache-dir ediacara==0.2.2
 ########################################################################################
 # Opencontainer labels
 LABEL org.opencontainers.image.title="sequeduct"
