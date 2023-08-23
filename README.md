@@ -61,7 +61,9 @@ nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry assembly --fast
     -profile docker 
 ```
 
-The above commands each output a directory within `results`. Similarly, Nextflow creates and uses a directory named `work`, so ensure that your project directory doesn't have one. Specify revision of the project with `-r` (a git branch or tag), and choose a configuration profile (with `-profile`). Profiles are specified in the Nextflow config files.
+The above commands each output a directory within a created `results` directory. Similarly, Nextflow creates and uses a directory named `work`, so ensure that your project directory doesn't have a directory with the same name. Specify revision of the project with `-r` (a git branch or tag), and choose a configuration profile (with `-profile`). Profiles are specified in the Nextflow config files. The Review pipeline utilises the output files of the Analysis pipeline, but otherwise the pipelines are independent. Please find example sheets in the `examples` directory.
+
+A more detailed example and demonstration data are available at the [Sequeduct demo](https://github.com/Edinburgh-Genome-Foundry/Sequeduct_demo) site.
 
 Use `-with-docker sequeduct_local` to use a locally built Docker image (instead of `-profile docker`).
 
