@@ -57,8 +57,7 @@ nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.3 -entry review --refere
     -profile docker
 # De novo assembly
 nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.3 -entry assembly --fastq_dir='fastq' \
-    --results_csv='results_sheet.csv' \
-    --projectname='EGF assembly' \
+    --results_csv='assembly_sheet.csv' \
     -profile docker 
 ```
 

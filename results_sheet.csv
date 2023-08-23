@@ -1,3 +1,3 @@
-Barcode,Sample,Result,Review_consensus,Review_de_novo,Length
-barcode01,EGF1_2,WARNING,1,1,8
-barcode02,EGF1_3,WARNING,1,1,11
+Barcode,Sample,Result,Review_consensus,Review_de_novo
+barcode01,EGF1_2,WARNING,1,1
+barcode02,EGF1_3,WARNING,1,1
