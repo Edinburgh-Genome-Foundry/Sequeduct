@@ -7,11 +7,6 @@ jobs:
     steps:
       - name: "Check out repo"
         uses: actions/checkout@v2
-      - name: "Fetch Ediacara"
-        run: |
-          eval `ssh-agent -s`
-          ssh-add - <<< '${{ secrets.EGF_SSH }}'
-          git clone git@github.com:Edinburgh-Genome-Foundry/Ediacara.git
       - name: "Login to GitHub Container Registry"
         uses: docker/login-action@v1
         with:
