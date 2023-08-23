@@ -4,7 +4,7 @@
 
 # Sequeduct
 
-![version](https://img.shields.io/badge/current_version-0.2.3-blue)
+![version](https://img.shields.io/badge/current_version-0.3.0-blue)
 
 Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly constructs, using long reads.
 
@@ -17,7 +17,7 @@ Install [Nextflow](https://www.nextflow.io/) and [Docker](https://www.docker.com
 Pull the Nextflow pipeline:
 
 ```bash
-nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.2.3
+nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.3.0
 ```
 
 Pull the Docker image that contains the required software (requires access to EGF's container repo):
@@ -38,25 +38,25 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 
 ```bash
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.3 -entry preview --fastq_dir='fastq' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry preview --fastq_dir='fastq' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     -profile docker
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.3 -entry analysis --fastq_dir='fastq' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry analysis --fastq_dir='fastq' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
     -profile docker
 # Review
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.3 -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry review --reference_dir='genbank' \
     --results_csv='results_sheet.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
     --assembly_plan='assembly_plan.csv' \
     -profile docker
 # De novo assembly
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.2.3 -entry assembly --fastq_dir='fastq' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry assembly --fastq_dir='fastq' \
     --results_csv='assembly_sheet.csv' \
     -profile docker 
 ```
