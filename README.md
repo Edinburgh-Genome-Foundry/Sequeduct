@@ -68,6 +68,8 @@ Use `-with-docker sequeduct_local` to use a locally built Docker image (instead 
 
 ### Details
 
+For simplicity, the names in the sample sheet are used for finding the reference Genbank files, therefore sample names must match filenames with a ".gb" extension.
+
 Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A [fix has been posted](https://github.com/marbl/canu/issues/2035), but it's not released yet.
 
 For convenience, a script is included to collect plot files from the result directories (`bin/collect_plots.py`).
