@@ -58,8 +58,8 @@ RUN tar -xJf canu-2.2.Linux-amd64.tar.xz \
 ENV PATH="/opt/canu-2.2/bin:$PATH"
 ########################################################################################
 # Java:
-RUN apt-get install -y openjdk-11-jre-headless
-ENV JAVA_HOME /usr/lib/jvm/java-11-openjdk-amd64/
+RUN apt-get install -y default-jre
+ENV JAVA_HOME /usr/lib/jvm/default-java/
 ########################################################################################
 RUN pip install --no-cache-dir ediacara==0.2.2
 ########################################################################################
