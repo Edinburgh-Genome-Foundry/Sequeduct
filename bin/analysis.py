@@ -9,7 +9,17 @@
 #
 # You should have received a copy of the GNU General Public License along with Sequeduct. If not, see <https:www.gnu.org/licenses/>.
 
+import resource
 import sys
+
+# Set 5 times the default. This is to avoid a problem during PDF build and may be revised later.
+resource.setrlimit(resource.RLIMIT_STACK, (41943040, -1))
+sys.setrecursionlimit(5000)
+
+print("RECURSION LIMIT:")
+print(sys.getrecursionlimit())
+print()
+print()
 
 samplesheet_csv = sys.argv[1]  # skip first filename
 params_projectname = sys.argv[2]
@@ -76,8 +86,9 @@ for index, row in entries.iterrows():
 
 
 # Create PDF report
-sequencinggroup = edi.SequencingGroup(comparatorgroups, name=params_projectname,
-                                      low_depth_cutoff=low_depth_value)
+sequencinggroup = edi.SequencingGroup(
+    comparatorgroups, name=params_projectname, low_depth_cutoff=low_depth_value
+)
 sequencinggroup.perform_all_comparisons_in_sequencinggroup()
 edi.write_sequencinggroup_report(target=pdf_file, sequencinggroup=sequencinggroup)
 

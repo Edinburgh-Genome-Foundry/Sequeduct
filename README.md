@@ -23,7 +23,7 @@ nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.3.0
 Pull the Docker image that contains the required software (requires access to EGF's container repo):
 
 ```bash
-docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:latest
+docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:0.3.0
 ```
 
 Alternatively, build the image locally from the cloned repo:
@@ -38,12 +38,12 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 
 ```bash
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry preview --fastq_dir='fastq' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry preview --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     -profile docker
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry analysis --fastq_dir='fastq' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry analysis --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
@@ -56,7 +56,7 @@ nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry review --refere
     --assembly_plan='assembly_plan.csv' \
     -profile docker
 # De novo assembly
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry assembly --fastq_dir='fastq' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.0 -entry assembly --fastq_dir='fastq_pass' \
     --results_csv='assembly_sheet.csv' \
     -profile docker 
 ```
@@ -74,6 +74,8 @@ For simplicity, the names in the sample sheet are used for finding the reference
 Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A [fix has been posted](https://github.com/marbl/canu/issues/2035), but it's not released yet.
 
 For convenience, a script is included to collect plot files from the result directories (`bin/collect_plots.py`).
+
+The pipeline was designed to work with data from one or more barcodes (FASTQ subdirectories). It has been tested on a desktop machine running Ubuntu 20.04.6 LTS (Memory: 15.5 GiB; CPU: Intel® Core™ i5-6500 CPU @ 3.20GHz × 4), and confirmed to work with up to 96 barcodes. The largest tested dataset was 1.5 GB Nanopore FASTQ data, resulting in 1.1 GB filtered data (100k filtered reads) with up to 55 MB individual filtered FASTQ files (i.e. per sample). If the dataset is much larger, then it may return an error at the variant call or another step. A recommended solution is to increase the quality cutoff (with parameter `--quality_cutoff`), and optionally the minimum length cutoff (`--min_length`), to work with fewer but better reads.
 
 ## License = GPLv3+
 
