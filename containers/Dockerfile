@@ -71,4 +71,4 @@ LABEL org.opencontainers.image.documentation="https://github.com/edinburgh-genom
 LABEL org.opencontainers.image.source="https://github.com/edinburgh-genome-foundry/sequeduct/"
 LABEL org.opencontainers.image.vendor="edinburgh-genome-foundry"
 LABEL org.opencontainers.image.authors="Peter Vegh"
-LABEL org.opencontainers.image.revision="v0.3.0"
+LABEL org.opencontainers.image.revision="v0.3.1"
