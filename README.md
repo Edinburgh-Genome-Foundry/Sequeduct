@@ -81,5 +81,4 @@ The pipeline was designed to work with data from one or more barcodes (FASTQ sub
 
 Copyright 2021 Edinburgh Genome Foundry, University of Edinburgh
 
-Sequeduct was written at the [Edinburgh Genome Foundry](https://edinburgh-genome-foundry.github.io/)
-by [Peter Vegh](https://github.com/veghp), and is released under the GPLv3 license.
+Sequeduct was designed by [Giovanni Stracquadanio](https://github.com/stracquadaniolab/) and Peter Vegh. It's implemented in Nextflow by [Peter Vegh](https://github.com/veghp) at the [Edinburgh Genome Foundry](https://edinburgh-genome-foundry.github.io/), and is released under the GPLv3 license.
