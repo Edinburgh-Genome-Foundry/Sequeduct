@@ -23,7 +23,7 @@ nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.3.1
 Pull the Docker image that contains the required software (requires access to EGF's container repo):
 
 ```bash
-docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:0.3.1
+docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:v0.3.1
 ```
 
 Alternatively, build the image locally from the cloned repo:
@@ -57,7 +57,7 @@ nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry review --refere
     -profile docker
 # De novo assembly
 nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry assembly --fastq_dir='fastq_pass' \
-    --results_csv='assembly_sheet.csv' \
+    --assembly_sheet='assembly_sheet.csv' \
     -profile docker 
 ```
 
@@ -65,11 +65,13 @@ The above commands each output a directory within a created `results` directory.
 
 A more detailed example and demonstration data are available at the [Sequeduct demo](https://github.com/Edinburgh-Genome-Foundry/Sequeduct_demo) site.
 
-Use `-with-docker sequeduct_local` to use a locally built Docker image (instead of `-profile docker`).
+Use `-with-docker sequeduct_local` (where sequeduct_local is the tag you specified during build) to use a locally built Docker image (instead of `-profile docker`).
 
 ### Details
 
 For simplicity, the names in the sample sheet are used for finding the reference Genbank files, therefore sample names must match filenames with a ".gb" extension.
+
+If you have the FASTQ files in gzip compressed format (`.gz`), then you must uncompress them (e.g. run `gunzip --recursive *` in the FASTQ folder).
 
 Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A [fix has been posted](https://github.com/marbl/canu/issues/2035), but it's not released yet.
 
