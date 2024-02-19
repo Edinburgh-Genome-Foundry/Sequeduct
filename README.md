@@ -10,6 +10,10 @@ Sequeduct (**seque**ncing aque**duct**) is a long read sequencing data analysis 
 
 An example analysis and demonstration data are available at the [Sequeduct demo](https://github.com/Edinburgh-Genome-Foundry/Sequeduct_demo) site.
 
+#### Citation
+
+Biofoundry-scale DNA assembly validation using cost-effective high-throughput long-read sequencing, *Peter Vegh, Sophie Donovan, Susan Rosser, Giovanni Stracquadanio, Rennos Fragkoudis.* [ACS Synthetic Biology](https://pubs.acs.org/doi/10.1021/acssynbio.3c00589) (2024) 13, 2, 683–686
+
 ## Usage
 
 ### Setup
