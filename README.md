@@ -6,7 +6,13 @@
 
 ![version](https://img.shields.io/badge/current_version-0.3.2-blue)
 
-Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly constructs, using long reads.
+Sequeduct (**seque**ncing aque**duct**) is a long read sequencing data analysis pipeline for validating plasmids and DNA assembly constructs.
+
+An example analysis and demonstration data are available at the [Sequeduct demo](https://github.com/Edinburgh-Genome-Foundry/Sequeduct_demo) site.
+
+#### Citation
+
+Biofoundry-scale DNA assembly validation using cost-effective high-throughput long-read sequencing, *Peter Vegh, Sophie Donovan, Susan Rosser, Giovanni Stracquadanio, Rennos Fragkoudis.* [ACS Synthetic Biology](https://pubs.acs.org/doi/10.1021/acssynbio.3c00589) (2024) 13, 2, 683–686
 
 ## Usage
 
@@ -58,7 +64,6 @@ docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:v0.3.2
 
 Use `-profile docker` to use this image in the below commands, instead of `-with-docker sequeduct_local`.
 
-
 ### Run
 
 Create a directory for your project and copy (or link) the FASTQ directories from your Nanopore run (e.g. `fastq_pass`). Specify this together with a sample sheet in your commands:
@@ -92,7 +97,6 @@ The above commands each output a directory within a created `results` directory.
 
 A more detailed example and demonstration data are available at the [Sequeduct demo](https://github.com/Edinburgh-Genome-Foundry/Sequeduct_demo) site.
 
-
 ### Details
 
 For simplicity, the names in the sample sheet are used for finding the reference Genbank files, therefore sample names must match filenames with a ".gb" extension.
@@ -104,7 +108,6 @@ Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A
 For convenience, a script is included to collect plot files from the result directories (`bin/collect_plots.py`).
 
 The pipeline was designed to work with data from one or more barcodes (FASTQ subdirectories). It has been tested on a desktop machine running Ubuntu 20.04.6 LTS (Memory: 15.5 GiB; CPU: Intel® Core™ i5-6500 CPU @ 3.20GHz × 4), and confirmed to work with up to 96 barcodes. The largest tested dataset was 1.5 GB Nanopore FASTQ data, resulting in 1.1 GB filtered data (100k filtered reads) with up to 55 MB individual filtered FASTQ files (i.e. per sample). If the dataset is much larger, then it may return an error at the variant call or another step. A recommended solution is to increase the quality cutoff (with parameter `--quality_cutoff`), and optionally the minimum length cutoff (`--min_length`), to work with fewer but better reads.
-
 
 ## License = GPLv3+
 
