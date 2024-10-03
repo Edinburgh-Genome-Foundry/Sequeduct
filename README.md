@@ -4,7 +4,7 @@
 
 # Sequeduct
 
-![version](https://img.shields.io/badge/current_version-0.3.1-blue)
+![version](https://img.shields.io/badge/current_version-0.3.2-blue)
 
 Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly constructs, using long reads.
 
@@ -17,7 +17,7 @@ Install [Nextflow](https://www.nextflow.io/) and [Docker](https://www.docker.com
 Pull the Nextflow pipeline:
 
 ```bash
-nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.3.1
+nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.3.2
 ```
 
 #### Docker image
@@ -53,7 +53,7 @@ where sequeduct_local is a custom tag that you can specify, and should be used i
 Alternatively, pull the Docker image if you have access to EGF's container repo (e.g. EGF staff members):
 
 ```bash
-docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:v0.3.1
+docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:v0.3.2
 ```
 
 Use `-profile docker` to use this image in the below commands, instead of `-with-docker sequeduct_local`.
@@ -65,25 +65,25 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 
 ```bash
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry preview --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry preview --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     -with-docker sequeduct_local
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry analysis --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry analysis --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
     -with-docker sequeduct_local
 # Review
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry review --reference_dir='genbank' \
     --results_csv='results_sheet.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
     --assembly_plan='assembly_plan.csv' \
     -with-docker sequeduct_local
 # De novo assembly
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry assembly --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry assembly --fastq_dir='fastq_pass' \
     --assembly_sheet='assembly_sheet.csv' \
     -with-docker sequeduct_local
 ```
