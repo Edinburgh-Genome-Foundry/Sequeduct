@@ -187,11 +187,12 @@ process runReview_de_novo {
         path trimmed_denovo
         path samplesheet_csv
     output:
-        tuple path(pdf_file), path(samplesheet_csv)
+        tuple path(pdf_file), path(samplesheet_csv), tuple path(html_file)
     script:
         pdf_file = "de_novo_review.pdf"
+        html_file = "de_novo_review.html"
         """
-        review.py "$samplesheet_csv" "$params.plan_path_denovo" "$params.projectname" "$pdf_file"
+        review.py "$samplesheet_csv" "$params.plan_path_denovo" "$params.projectname" "$pdf_file" "$html_file"
         """
 }
 

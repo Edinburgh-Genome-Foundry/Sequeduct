@@ -15,6 +15,7 @@ samplesheet_csv = sys.argv[1]  # skip first filename
 params_plan_path = sys.argv[2]
 params_projectname = sys.argv[3]
 pdf_file = sys.argv[4]
+html_file = sys.argv[5]
 
 import pandas as pd
 import ediacara as edi
@@ -53,4 +54,4 @@ for index, row in entries.iterrows():
 assemblybatch = edi.AssemblyBatch(assemblies=consensus_list, name=params_projectname)
 assemblybatch.perform_all_interpretations_in_group()
 
-edi.write_assembly_analysis_report(pdf_file, assemblybatch)
+edi.write_assembly_analysis_report(pdf_file, html_file, assemblybatch)
