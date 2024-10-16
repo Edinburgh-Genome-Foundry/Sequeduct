@@ -4,9 +4,15 @@
 
 # Sequeduct
 
-![version](https://img.shields.io/badge/current_version-0.3.1-blue)
+![version](https://img.shields.io/badge/current_version-0.3.2-blue)
 
-Sequencing analysis pipeline (aqueduct) for validating plasmids and DNA assembly constructs, using long reads.
+Sequeduct (**seque**ncing aque**duct**) is a long read sequencing data analysis pipeline for validating plasmids and DNA assembly constructs.
+
+An example analysis and demonstration data are available at the [Sequeduct demo](https://github.com/Edinburgh-Genome-Foundry/Sequeduct_demo) site.
+
+#### Citation
+
+Biofoundry-scale DNA assembly validation using cost-effective high-throughput long-read sequencing, *Peter Vegh, Sophie Donovan, Susan Rosser, Giovanni Stracquadanio, Rennos Fragkoudis.* [ACS Synthetic Biology](https://pubs.acs.org/doi/10.1021/acssynbio.3c00589) (2024) 13, 2, 683–686
 
 ## Usage
 
@@ -17,59 +23,85 @@ Install [Nextflow](https://www.nextflow.io/) and [Docker](https://www.docker.com
 Pull the Nextflow pipeline:
 
 ```bash
-nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.3.1
+nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.3.2
 ```
 
-Pull the Docker image that contains the required software (requires access to EGF's container repo):
+#### Docker image
+
+Build the image that contains the software required for running the pipeline. First, obtain the code (Dockerfile) either by downloading or cloning:
+
+##### Download
+
+Download the repository...
+
+* click on the "<> Code" button at the top of this page, and 'Download ZIP'
+* open a terminal where the file was downloaded
+* Unzip the file (e.g. `unzip Sequeduct-main.zip`)
+
+##### Clone
+
+... or clone the repository:
 
 ```bash
-docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:0.3.1
+git clone https://github.com/Edinburgh-Genome-Foundry/Sequeduct.git
 ```
 
-Alternatively, build the image locally from the cloned repo:
+#### Build
+
+Change to the downloaded directory (e.g. `cd Sequeduct-main/`), then run:
 
 ```bash
 docker build . -f containers/Dockerfile --tag sequeduct_local
 ```
 
+where sequeduct_local is a custom tag that you can specify, and should be used in the run commands below.
+
+Alternatively, pull the Docker image if you have access to EGF's container repo (e.g. EGF staff members):
+
+```bash
+docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:v0.3.2
+```
+
+Use `-profile docker` to use this image in the below commands, instead of `-with-docker sequeduct_local`.
+
 ### Run
 
-Create a directory for your project and copy (or link) the FASTQ directories from your Nanopore run (e.g. into `fastq`). Specify this together with a sample sheet in your commands:
+Create a directory for your project and copy (or link) the FASTQ directories from your Nanopore run (e.g. `fastq_pass`). Specify this together with a sample sheet in your commands:
 
 ```bash
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry preview --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry preview --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
-    -profile docker
+    -with-docker sequeduct_local
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry analysis --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry analysis --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
-    -profile docker
+    -with-docker sequeduct_local
 # Review
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry review --reference_dir='genbank' \
     --results_csv='results_sheet.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
     --assembly_plan='assembly_plan.csv' \
-    -profile docker
+    -with-docker sequeduct_local
 # De novo assembly
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.1 -entry assembly --fastq_dir='fastq_pass' \
-    --results_csv='assembly_sheet.csv' \
-    -profile docker 
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.3.2 -entry assembly --fastq_dir='fastq_pass' \
+    --assembly_sheet='assembly_sheet.csv' \
+    -with-docker sequeduct_local
 ```
 
 The above commands each output a directory within a created `results` directory. Similarly, Nextflow creates and uses a directory named `work`, so ensure that your project directory doesn't have a directory with the same name. Specify revision of the project with `-r` (a git branch or tag), and choose a configuration profile (with `-profile`). Profiles are specified in the Nextflow config files. The Review pipeline utilises the output files of the Analysis pipeline, but otherwise the pipelines are independent. Please find example sheets in the `examples` directory.
 
 A more detailed example and demonstration data are available at the [Sequeduct demo](https://github.com/Edinburgh-Genome-Foundry/Sequeduct_demo) site.
 
-Use `-with-docker sequeduct_local` to use a locally built Docker image (instead of `-profile docker`).
-
 ### Details
 
 For simplicity, the names in the sample sheet are used for finding the reference Genbank files, therefore sample names must match filenames with a ".gb" extension.
+
+If you have the FASTQ files in gzip compressed format (`.gz`), then you must uncompress them (e.g. run `gunzip --recursive *` in the FASTQ folder).
 
 Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A [fix has been posted](https://github.com/marbl/canu/issues/2035), but it's not released yet.
 
@@ -81,5 +113,4 @@ The pipeline was designed to work with data from one or more barcodes (FASTQ sub
 
 Copyright 2021 Edinburgh Genome Foundry, University of Edinburgh
 
-Sequeduct was written at the [Edinburgh Genome Foundry](https://edinburgh-genome-foundry.github.io/)
-by [Peter Vegh](https://github.com/veghp), and is released under the GPLv3 license.
+Sequeduct was designed by [Giovanni Stracquadanio](https://github.com/stracquadaniolab/) and Peter Vegh. It's implemented in Nextflow by [Peter Vegh](https://github.com/veghp) at the [Edinburgh Genome Foundry](https://edinburgh-genome-foundry.github.io/), and is released under the GPLv3 license.
