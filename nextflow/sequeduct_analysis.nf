@@ -162,12 +162,13 @@ process runEdiacara {
         path genbank
         path samplesheet_csv
     output:
-        tuple path(pdf_file), path(results_csv_file), path(samplesheet_csv)
+        tuple path(pdf_file), path(results_csv_file), path(samplesheet_csv), path(html_file)
     script:
         pdf_file = "Ediacara_report.pdf"
+        html_file = "Ediacara_report.html"
         results_csv_file = "results.csv"
         """
-        analysis.py $samplesheet_csv "$params.projectname" $pdf_file $results_csv_file $params.low_depth_value
+        analysis.py $samplesheet_csv "$params.projectname" $pdf_file $results_csv_file $params.low_depth_value $html_file
         """
 }
 
