@@ -12,91 +12,6 @@
 nextflow.enable.dsl=2
 
 ///////////////////////////////////////////////////////////////////////////////
-// Variant call consensus sequence review
-
-process convertGenbank {
-
-    input:
-        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), file(consensus_path)
-
-    output:
-        tuple val(entry), val(barcode), val(sample), val(result), file(genbank_path), path(sample_fasta), file(consensus_path)
-
-    script:
-        sample_fasta = sample + '.fa'
-
-        """
-        convert_genbank.py "$genbank_path" "$sample" "$sample_fasta" "$params.max_len_fraction" "none"
-        """
-}
-
-process alignParts {
-    publishDir 'results/dir3_review/n1_consensus_alignment', mode: 'copy', pattern: '*.paf'
-
-    input:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), file(consensus_path)
-        file parts_path
-
-    output:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), file(consensus_path), path(paf), emit: alignment_ch
-
-    script:
-        paf = entry + '.paf'
-        """
-        cat $sample_fasta $parts_path | \
-        minimap2 -cx asm5 $consensus_path - > $paf
-        """
-}
-
-process writeCSV {
-    input:
-        tuple val(entry), val(barcode), val(sample), val(result), val(genbank_path), path(sample_fasta), path(consensus_path), path(paf)
-    output:
-        path samplesheet_csv, emit: samplesheet_csv_ch
-        path paf, emit: paf_file_ch
-        path consensus_path, emit: consensus_path_ch
-    script:
-        samplesheet_csv = "entries.csv"
-        // order is important, see Python script:
-        """
-        echo "$params.projectname,$entry,$barcode,$sample,$result,$genbank_path,$sample_fasta,$consensus_path,$paf" >> $samplesheet_csv
-        """    
-}
-
-process runReview {
-    publishDir 'results/dir3_review/n2_consensus_results', mode: 'copy'
-
-    input:
-        file paf
-        file consensus
-        path samplesheet_csv
-    output:
-        tuple path(pdf_file), path(samplesheet_csv)
-    script:
-        pdf_file = "consensus_review.pdf"
-        """
-        review.py "$samplesheet_csv" "$params.plan_path" "$params.projectname" "$pdf_file"
-        """
-}
-
-
-workflow review_consensus {
-    take: entries_ch
-    main:
-        params.parts_path = file(params.all_parts)
-        if( params.assembly_plan == "noplan" ) {
-            params.plan_path = "noplan"
-        }
-        else {
-            params.plan_path = file(params.assembly_plan)
-        }
-        convertGenbank(entries_ch)
-        alignParts(convertGenbank.out, params.parts_path)
-        writeCSV(alignParts.out.alignment_ch)
-        runReview(writeCSV.out.paf_file_ch.collect(), writeCSV.out.consensus_path_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // De novo assembly sequence review
 
 process convertGenbank_de_novo {
@@ -197,7 +112,6 @@ process runReview_de_novo {
 }
 
 
-// Workflows:
 
 workflow review_denovo {
     take: entries_de_novo_ch

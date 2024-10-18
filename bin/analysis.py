@@ -115,7 +115,6 @@ d = {
 
 results_table = pd.DataFrame(d)
 
-results_table["Review_consensus"] = 0
 results_table["Review_de_novo"] = 0
 
 results_table.to_csv(results_csv_file, index=False)

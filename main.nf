@@ -14,7 +14,6 @@ nextflow.enable.dsl=2
 
 include { preview_workflow } from "$projectDir/nextflow/sequeduct_preview.nf"
 include { analysis_workflow } from "$projectDir/nextflow/sequeduct_analysis.nf"
-include { review_consensus } from "$projectDir/nextflow/sequeduct_review.nf"
 include { review_denovo } from "$projectDir/nextflow/sequeduct_review.nf"
 include { assemble_denovo } from "$projectDir/nextflow/sequeduct_assembly.nf"
 
@@ -74,23 +73,6 @@ workflow review {
     Channel
         .fromPath(params.results_csv)
         .splitCsv(header: true)
-        .filter { item -> item[params.consensus_columname] == params.consensus_true}
-        
-        .map { row -> 
-            def barcode = row['Barcode']  // a barcode is present only once -- no pooling
-            def sample = row['Sample']  // a sample may be present multiple times, in different barcodes
-            def entry = "${barcode}_${sample}"  // unique key for each sample sheet entry
-            def result = row["Result"]
-            def genbank_path = file("${params.reference_dir}/${sample}.gb")
-            // Note: sample name matches filename with ".gb" extension
-            def consensus_path = file("${params.consensus_dir}/${entry}_consensus.fa")
-            return [entry, barcode, sample, result, genbank_path, consensus_path]
-            }
-        .set { entries_ch }
-
-    Channel
-        .fromPath(params.results_csv)
-        .splitCsv(header: true)
         .filter { item -> item[params.denovo_columname] == params.denovo_true}
         
         .map { row -> 
@@ -104,8 +86,6 @@ workflow review {
             }
         .set { entries_de_novo_ch }
 
-
-    review_consensus(entries_ch)
 
     review_denovo(entries_de_novo_ch)
 }
