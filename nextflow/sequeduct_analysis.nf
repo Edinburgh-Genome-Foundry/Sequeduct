@@ -69,7 +69,7 @@ process calculateRetained {
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), stdout // retained pct
     script:
-        preview_nanostat = 'results/dir1_preview/' + barcode + '_plots/NanoStats.txt'
+        preview_nanostat = file(params.preview_output_dir + '/' + barcode + '_plots/NanoStats.txt')
         analysis_nanostat = barcode + '/NanoStats.txt'
         """
         calculate_retained.py $preview_nanostat $analysis_nanostat
