@@ -134,11 +134,22 @@ process callConsensus {
         """
 }
 
-process calculateAligned {
+process calculateRetained {
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), stdout // stdout for aligned_pct
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), stdout // stdout for retained pct
+    script:
+        """
+        calculate_retained.py $barcode
+        """
+}
+
+process calculateAligned {
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct)
+    output:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), stdout // stdout for aligned_pct
     script:
         """
         calculate_aligned.py $fastq_file $paf_file
@@ -147,7 +158,7 @@ process calculateAligned {
 
 process writeCSV {
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(aligned_pct)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), val(aligned_pct)
     output:
         path samplesheet_csv, emit: samplesheet_csv_ch
         path paf_file, emit: paf_file_ch
@@ -158,7 +169,7 @@ process writeCSV {
         samplesheet_csv = "entries.csv"
         // order is important, see Python script in next process:
         """
-        echo "$params.projectname,$entry,$barcode,$sample,$sample_fasta,$filtered_vcf_file,$paf_file,$counts_tsv,$consensus_fa_file,$aligned_pct" >> $samplesheet_csv
+        echo "$params.projectname,$entry,$barcode,$sample,$sample_fasta,$filtered_vcf_file,$paf_file,$counts_tsv,$consensus_fa_file,$retained_pct,$aligned_pct" >> $samplesheet_csv
         """    
 }
 
@@ -195,7 +206,8 @@ workflow analysis_workflow {
         alignEntries(runNanoFilt.out.entries_fasta_fastq_ch)
         callVariants(alignEntries.out)
         callConsensus(callVariants.out)
-        calculateAligned(callConsensus.out)
+        calculateRetained(callConsensus.out)
+        calculateAligned(calculateRetained.out)
         writeCSV(calculateAligned.out)
         runEdiacara(writeCSV.out.paf_file_ch.collect(), writeCSV.out.counts_tsv_ch.collect(), writeCSV.out.filtered_vcf_file_ch.collect(), writeCSV.out.consensus_fa_file_ch.collect(), genbank_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
 }

@@ -44,6 +44,7 @@ entries.columns = [
     "paf",
     "tsv",
     "consensus_fasta",
+    "retained_pct",
     "aligned_pct"
 ]
 entries.sort_values(
