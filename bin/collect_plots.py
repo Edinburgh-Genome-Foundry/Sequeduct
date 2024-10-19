@@ -14,7 +14,7 @@ import os
 import shutil
 
 collected_plot_path = "collected_unfiltered_nanoplots"
-nanoplot_path = "results/dir1_preview"
+nanoplot_path = "results/dir1_preview"  # change to the value of params.preview_output_dir
 plot_filename = "LengthvsQualityScatterPlot_kde.png"
 
 for directory in os.listdir(nanoplot_path):

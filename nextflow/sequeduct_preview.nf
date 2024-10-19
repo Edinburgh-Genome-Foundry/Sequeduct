@@ -12,7 +12,7 @@
 nextflow.enable.dsl=2
 
 process runNanoPlot {
-    publishDir 'results/dir1_preview', mode: 'copy'
+    publishDir params.preview_output_dir, mode: 'copy'
 
     input:
         tuple val(barcode), file(barcode_path), val(fastq_files)
