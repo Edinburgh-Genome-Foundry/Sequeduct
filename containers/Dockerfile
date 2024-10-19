@@ -63,7 +63,7 @@ RUN pip install --no-cache-dir biopython==1.78
 RUN pip install --no-cache-dir dna_features_viewer==3.1.2 geneblocks==1.2.3 cyvcf2==0.30.22 pdf_reports==0.3.5
 RUN pip install --no-cache-dir geneblocks==1.2.3
 RUN pip install --no-cache-dir NanoPlot==1.38.1 nanofilt==2.8.0
-RUN pip install --no-cache-dir ediacara==0.2.2
+RUN pip install ediacara@git+https://github.com/Edinburgh-Genome-Foundry/Ediacara.git
 RUN pip install --no-cache-dir pypdf==4.2.0
 RUN pip install --no-cache-dir pydyf==0.10.0
 ########################################################################################
