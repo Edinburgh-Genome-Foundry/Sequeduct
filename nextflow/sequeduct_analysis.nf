@@ -35,8 +35,7 @@ process runNanoFilt {
         tuple val(entry), val(barcode), path(barcode_path), val(fastq_files), val(sample), path(sample_fasta), val(seq_length)
 
     output:
-        tuple val(entry), val(barcode), path(fastq_file), emit: fastq_filtered_ch
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), emit: entries_fasta_fastq_ch
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file)
 
     script:
         fastq_file = barcode + '.fastq'  // need for output
@@ -49,17 +48,18 @@ process runNanoFilt {
 }
 
 process runNanoPlot {
-    publishDir 'results/dir2_analysis/n3_nanoplots', mode: 'copy'
+    publishDir 'results/dir2_analysis/n3_nanoplots', mode: 'copy', pattern: "${barcode_plots}"
 
     input:
-        tuple val(entry), val(barcode), path(fastq_file)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file)
 
     output:
-        path barcode
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(barcode_plots)
 
     script:
+        barcode_plots = barcode
         """
-        NanoPlot --raw --fastq $fastq_file -o $barcode
+        NanoPlot --raw --fastq $fastq_file -o $barcode_plots
         """
 }
 
@@ -70,7 +70,7 @@ process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(barcode_plots)
 
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv)
@@ -204,8 +204,8 @@ workflow analysis_workflow {
     main:
         convertGenbank(entries_ch)
         runNanoFilt(convertGenbank.out)
-        runNanoPlot(runNanoFilt.out.fastq_filtered_ch)
-        alignEntries(runNanoFilt.out.entries_fasta_fastq_ch)
+        runNanoPlot(runNanoFilt.out)
+        alignEntries(runNanoPlot.out)
         callVariants(alignEntries.out)
         callConsensus(callVariants.out)
         calculateRetained(callConsensus.out)
