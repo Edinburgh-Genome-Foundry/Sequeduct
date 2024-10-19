@@ -44,6 +44,7 @@ entries.columns = [
     "paf",
     "tsv",
     "consensus_fasta",
+    "aligned_pct"
 ]
 entries.sort_values(
     by=["barcode", "sample"], inplace=True
@@ -100,16 +101,18 @@ print("PDF created")
 barcodes = []
 samples = []
 results = []
+aligned = []
 
 for comparatorgroup in sequencinggroup.comparatorgroups:
     for index, row in comparatorgroup.summary_table.iterrows():
         barcodes.append(comparatorgroup.barcode)
         samples += [row["Name"]]
         results += [row["Result"]]
-
+        aligned += ["100%"]
 d = {
     "Barcode": pd.Series(barcodes),
     "Sample": pd.Series(samples),
+    "Aligned": pd.Series(aligned),
     "Result": pd.Series(results),
 }
 
