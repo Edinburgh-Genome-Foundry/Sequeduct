@@ -63,6 +63,19 @@ process runNanoPlot {
         """
 }
 
+process calculateRetained {
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(barcode_plots)
+    output:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), stdout // retained pct
+    script:
+        preview_nanostat = 'results/dir1_preview/' + barcode + '_plots/NanoStats.txt'
+        analysis_nanostat = 'results/dir2_analysis/n3_nanoplots/' + barcode + '/NanoStats.txt'
+        """
+        calculate_retained.py $preview_nanostat $analysis_nanostat
+        """
+}
+
 process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.paf'
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bam'
@@ -70,10 +83,10 @@ process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(barcode_plots)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct)
 
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct)
 
     script:
         sam_file = entry + '.sam'
@@ -96,10 +109,10 @@ process callVariants {
     publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy', pattern: '*.vcf'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct)
 
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct)
 
     script:
         vcf_file = entry + '.vcf'
@@ -112,10 +125,10 @@ process callConsensus {
     publishDir 'results/dir2_analysis/n6_consensus', mode: 'copy', pattern: '*_consensus.fa'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct)
 
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct)
 
     script:
         vcf_gz_file = entry + '.vcf.gz'
@@ -131,19 +144,6 @@ process callConsensus {
         bgzip --keep --index $double_filtered_vcf_file
         bcftools index $double_filtered_vcf_gz_file
         bcftools consensus --fasta-ref $sample_fasta --output $consensus_fa_file $double_filtered_vcf_gz_file
-        """
-}
-
-process calculateRetained {
-    input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file)
-    output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), stdout // stdout for retained pct
-    script:
-        preview_nanostat = 'results/dir1_preview/' + barcode + '_plots/NanoStats.txt'
-        analysis_nanostat = 'results/dir2_analysis/n3_nanoplots/' + barcode + '/NanoStats.txt'
-        """
-        calculate_retained.py $preview_nanostat $analysis_nanostat
         """
 }
 
@@ -205,11 +205,11 @@ workflow analysis_workflow {
         convertGenbank(entries_ch)
         runNanoFilt(convertGenbank.out)
         runNanoPlot(runNanoFilt.out)
-        alignEntries(runNanoPlot.out)
+        calculateRetained(runNanoPlot.out)
+        alignEntries(calculateRetained.out)
         callVariants(alignEntries.out)
         callConsensus(callVariants.out)
-        calculateRetained(callConsensus.out)
-        calculateAligned(calculateRetained.out)
+        calculateAligned(callConsensus.out)
         writeCSV(calculateAligned.out)
         runEdiacara(writeCSV.out.paf_file_ch.collect(), writeCSV.out.counts_tsv_ch.collect(), writeCSV.out.filtered_vcf_file_ch.collect(), writeCSV.out.consensus_fa_file_ch.collect(), genbank_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
 }
