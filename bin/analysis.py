@@ -51,7 +51,10 @@ entries.sort_values(
     by=["barcode", "sample"], inplace=True
 )  # have them in order in the pdf
 
-aligned_pct_dict = {}  # this is for the result table. Ediacara classes do not store this info.
+# These two are for the result table. Ediacara classes do not store this info.
+aligned_pct_dict = {}
+retained_pct_dict = {}
+
 comparatorgroups = []
 for index, row in entries.iterrows():
     print("Processing", row["entry"], end="")
@@ -88,6 +91,7 @@ for index, row in entries.iterrows():
     comparatorgroups += [comparator_group]
  
     aligned_pct_dict[entry] = str(row["aligned_pct"]) + "%"  # format for the table
+    retained_pct_dict[entry] = str(row["retained_pct"])  # already has percent sign
 
     print("    ... done")
 
@@ -107,6 +111,7 @@ barcodes = []
 samples = []
 results = []
 aligned = []
+retained = []
 
 for comparatorgroup in sequencinggroup.comparatorgroups:
     for index, row in comparatorgroup.summary_table.iterrows():
@@ -116,11 +121,13 @@ for comparatorgroup in sequencinggroup.comparatorgroups:
 
         entry = comparatorgroup.barcode + "_" + row["Name"]  # reconstruct entry key
         aligned += aligned_pct_dict[entry]
+        retained += retained_pct_dict[entry]
 
 d = {
     "Barcode": pd.Series(barcodes),
     "Sample": pd.Series(samples),
-    "Aligned": pd.Series(aligned),
+    "Retained_bp": pd.Series(retained),
+    "Aligned_reads": pd.Series(aligned),
     "Result": pd.Series(results),
 }
 
