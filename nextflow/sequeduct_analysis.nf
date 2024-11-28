@@ -94,7 +94,7 @@ process trimAssembly {
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
     script:
-        trimmed_denovo = barcode + '_denovo.fasta'
+        trimmed_denovo = barcode + '_asm.fasta'
         """
         trim_assembly.py "$assembly_dir" "$params.assembly_prefix" "$params.canu_postfix" "$trimmed_denovo" "$barcode"
         """
@@ -108,7 +108,7 @@ process align_de_novo_asm {
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     script:
-        aln = barcode + '.paf'
+        aln = barcode + '_asm' + sample + '.paf'
         """
         minimap2 -cx asm5 $sample_fasta $trimmed_denovo > $aln
         """
