@@ -79,9 +79,9 @@ process assembleDeNovo {
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir)
     script:
         assembly_dir = barcode + '_assembly'
-        genomsize_param = 'genomeSize=' + seq_length + 'k'
+        genomsize_param = 'genomeSize=' + seq_length.toInteger().div(1000) + 'k'
         """
-        canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
+        canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_file
         """
 }
 
