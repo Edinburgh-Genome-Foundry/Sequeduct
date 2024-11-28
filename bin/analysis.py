@@ -45,11 +45,12 @@ entries.columns = [
     "tsv",
     "consensus_fasta",
     "retained_pct",
-    "aligned_pct"
+    "aligned_pct",
+    "asm",
+    "asm_aln",
 ]
-entries.sort_values(
-    by=["barcode", "sample"], inplace=True
-)  # have them in order in the pdf
+# This puts entries in order in the pdf:
+entries.sort_values(by=["barcode", "sample"], inplace=True)
 
 # These two are for the result table. Ediacara classes do not store this info.
 aligned_pct_dict = {}
@@ -69,9 +70,13 @@ for index, row in entries.iterrows():
 
     tsv_file = row["tsv"]
     paf_path = row["paf"]
+    asm_file = row["asm"]
+    asm_aln_file = row["asm_aln"]
 
     tsv = edi.ComparatorGroup.load_tsv(tsv_file)
     paf = edi.ComparatorGroup.load_paf(paf_path)
+    asm = SeqIO.read(asm_file, "fasta")
+    asm_aln = edi.ComparatorGroup.load_paf(asm_aln_file)
 
     assembly_paths = {sample: row["consensus_fasta"]}
     vcf_paths = {sample: vcf}
@@ -82,6 +87,8 @@ for index, row in entries.iterrows():
         barcode=row["barcode"],
         assembly_paths=assembly_paths,
         vcf_paths=vcf_paths,
+        low_depth_cutoff=int(low_depth_value),
+        asm_dict={"asm": asm, "aln": asm_aln},
     )
 
     list_of_constructs = [sample]
@@ -89,16 +96,14 @@ for index, row in entries.iterrows():
         comparator_group.add_comparator(element)
 
     comparatorgroups += [comparator_group]
- 
+
     aligned_pct_dict[entry] = str(row["aligned_pct"]) + "%"  # format for the table
     retained_pct_dict[entry] = str(row["retained_pct"])  # already has percent sign
 
     print("    ... done")
 
 # Create PDF report
-sequencinggroup = edi.SequencingGroup(
-    comparatorgroups, name=params_projectname, low_depth_cutoff=low_depth_value
-)
+sequencinggroup = edi.SequencingGroup(comparatorgroups, name=params_projectname)
 sequencinggroup.perform_all_comparisons_in_sequencinggroup()
 edi.write_sequencinggroup_report(
     pdf_file=pdf_file, html_file=html_file, sequencinggroup=sequencinggroup
@@ -110,8 +115,9 @@ print("PDF created")
 barcodes = []
 samples = []
 results = []
-aligned = []
-retained = []
+aligned_pct = []
+aligned_reads = []
+retained_pct = []
 
 for comparatorgroup in sequencinggroup.comparatorgroups:
     for index, row in comparatorgroup.summary_table.iterrows():
@@ -120,14 +126,16 @@ for comparatorgroup in sequencinggroup.comparatorgroups:
         results += [row["Result"]]
 
         entry = comparatorgroup.barcode + "_" + row["Name"]  # reconstruct entry key
-        aligned += aligned_pct_dict[entry]
-        retained += retained_pct_dict[entry]
+        aligned_pct += [aligned_pct_dict[entry]]
+        aligned_reads += [comparatorgroup.n_fastq_reads]
+        retained_pct += [retained_pct_dict[entry]]
 
 d = {
     "Barcode": pd.Series(barcodes),
     "Sample": pd.Series(samples),
-    "Retained_bp": pd.Series(retained),
-    "Aligned_reads": pd.Series(aligned),
+    "Retained_bp_pct": pd.Series(retained_pct),
+    "Aligned_read_pct": pd.Series(aligned_pct),
+    "Aligned_reads": pd.Series(aligned_reads),
     "Result": pd.Series(results),
 }
 
