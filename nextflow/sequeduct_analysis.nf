@@ -16,10 +16,8 @@ process convertGenbank {
 
     input:
         tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_path)
-
     output:
         tuple val(entry), val(barcode), file(barcode_path), val(fastq_files), val(sample), path(sample_fasta), stdout // stdout for seq length
-
     script:
         sample_fasta = sample + '.fa'
 
@@ -33,10 +31,8 @@ process runNanoFilt {
 
     input:
         tuple val(entry), val(barcode), path(barcode_path), val(fastq_files), val(sample), path(sample_fasta), val(seq_length)
-
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file)
-
     script:
         fastq_file = barcode + '.fastq'  // need for output
 
@@ -52,10 +48,8 @@ process runNanoPlot {
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file)
-
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(barcode_plots)
-
     script:
         barcode_plots = barcode
         """
@@ -91,6 +85,21 @@ process assembleDeNovo {
         """
 }
 
+
+process trimAssembly {
+    publishDir 'results/dir2_analysis/n4_de_novo_assembly/trimmed', mode: 'copy', pattern: '*_denovo.fasta'
+
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), val(assembly_dir)
+    output:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
+    script:
+        trimmed_denovo = barcode + '_denovo.fasta'
+        """
+        trim_assembly.py "$assembly_dir" "$params.assembly_prefix" "$params.canu_postfix" "$trimmed_denovo" "$barcode"
+        """
+}
+
 process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.paf'
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bam'
@@ -98,11 +107,9 @@ process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir)
-
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct)
-
     script:
         sam_file = entry + '.sam'
         paf_file = entry + '.paf'
@@ -125,10 +132,8 @@ process callVariants {
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct)
-
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct)
-
     script:
         vcf_file = entry + '.vcf'
         """
@@ -141,10 +146,8 @@ process callConsensus {
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct)
-
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct)
-
     script:
         vcf_gz_file = entry + '.vcf.gz'
         filtered_vcf_file = entry + '_filtered.vcf'
@@ -222,7 +225,8 @@ workflow analysis_workflow {
         runNanoPlot(runNanoFilt.out)
         calculateRetained(runNanoPlot.out)
         assembleDeNovo(calculateRetained.out)
-        alignEntries(assembleDeNovo.ou)
+        trimAssembly(assembleDeNovo.out)
+        alignEntries(trimAssembly.out)
         callVariants(alignEntries.out)
         callConsensus(callVariants.out)
         calculateAligned(callConsensus.out)
