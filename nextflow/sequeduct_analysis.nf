@@ -100,6 +100,20 @@ process trimAssembly {
         """
 }
 
+process align_de_novo_asm {
+    publishDir 'results/dir2_analysis/n4_de_novo_alignment', mode: 'copy', pattern: '*.paf'
+
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
+    output:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+    script:
+        aln = barcode + '.paf'
+        """
+        minimap2 -cx asm5 $sample_fasta $trimmed_denovo > $aln
+        """
+}
+
 process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.paf'
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bam'
@@ -226,7 +240,8 @@ workflow analysis_workflow {
         calculateRetained(runNanoPlot.out)
         assembleDeNovo(calculateRetained.out)
         trimAssembly(assembleDeNovo.out)
-        alignEntries(trimAssembly.out)
+        align_de_novo_asm(trimAssembly.out)
+        alignEntries(align_de_novo_asm.out)
         callVariants(alignEntries.out)
         callConsensus(callVariants.out)
         calculateAligned(callConsensus.out)
