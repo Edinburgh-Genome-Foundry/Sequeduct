@@ -90,7 +90,7 @@ process trimAssembly {
     publishDir 'results/dir2_analysis/n4_de_novo_assembly/trimmed', mode: 'copy', pattern: '*_asm.fasta'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), val(assembly_dir)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir)
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
     script:
@@ -108,7 +108,7 @@ process align_de_novo_asm {
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     script:
-        aln = barcode + '_asm' + 'sample' + '.paf'
+        aln = barcode + '_asm' + sample + '.paf'
         """
         minimap2 -cx asm5 $sample_fasta $trimmed_denovo > $aln
         """
@@ -123,7 +123,7 @@ process alignEntries {
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     script:
         sam_file = entry + '.sam'
         paf_file = entry + '.paf'
@@ -145,9 +145,9 @@ process callVariants {
     publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy', pattern: '*.vcf'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     script:
         vcf_file = entry + '.vcf'
         """
@@ -159,9 +159,9 @@ process callConsensus {
     publishDir 'results/dir2_analysis/n6_consensus', mode: 'copy', pattern: '*_consensus.fa'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     script:
         vcf_gz_file = entry + '.vcf.gz'
         filtered_vcf_file = entry + '_filtered.vcf'
@@ -181,9 +181,9 @@ process callConsensus {
 
 process calculateAligned {
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(trimmed_denovo), path(aln), stdout // stdout for aligned_pct
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln), stdout // stdout for aligned_pct
     script:
         """
         calculate_aligned.py $fastq_file $paf_file
@@ -192,13 +192,15 @@ process calculateAligned {
 
 process writeCSV {
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), val(aligned_pct)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln), val(aligned_pct)
     output:
         path samplesheet_csv, emit: samplesheet_csv_ch
         path paf_file, emit: paf_file_ch
         path counts_tsv, emit: counts_tsv_ch
         path filtered_vcf_file, emit: filtered_vcf_file_ch
         path consensus_fa_file, emit: consensus_fa_file_ch
+        path trimmed_denovo, emit: trimmed_denovo_ch
+        path aln, emit: aln_ch
     script:
         samplesheet_csv = "entries.csv"
         // order is important, see Python script in next process:
@@ -215,6 +217,8 @@ process runEdiacara {
         file counts_tsv
         file filtered_vcf_file
         file consensus_fa_file
+        file trimmed_denovo
+        file aln
         path genbank
         path samplesheet_csv
     output:
@@ -246,5 +250,5 @@ workflow analysis_workflow {
         callConsensus(callVariants.out)
         calculateAligned(callConsensus.out)
         writeCSV(calculateAligned.out)
-        runEdiacara(writeCSV.out.paf_file_ch.collect(), writeCSV.out.counts_tsv_ch.collect(), writeCSV.out.filtered_vcf_file_ch.collect(), writeCSV.out.consensus_fa_file_ch.collect(), genbank_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
+        runEdiacara(writeCSV.out.paf_file_ch.collect(), writeCSV.out.counts_tsv_ch.collect(), writeCSV.out.filtered_vcf_file_ch.collect(), writeCSV.out.consensus_fa_file_ch.collect(), writeCSV.out.trimmed_denovo_ch.collect(), writeCSV.out.aln_ch.collect(), genbank_ch.collect(), writeCSV.out.samplesheet_csv_ch.collectFile())
 }
