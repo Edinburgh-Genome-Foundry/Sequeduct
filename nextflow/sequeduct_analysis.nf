@@ -76,6 +76,21 @@ process calculateRetained {
         """
 }
 
+process assembleDeNovo {
+    publishDir 'results/dir2_analysis/n4_de_novo_assembly', mode: 'copy'
+    
+    input:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct)
+    output:
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir)
+    script:
+        assembly_dir = barcode + '_assembly'
+        genomsize_param = 'genomeSize=' + seq_length + 'k'
+        """
+        canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_path
+        """
+}
+
 process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.paf'
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bam'
@@ -83,7 +98,7 @@ process alignEntries {
     publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir)
 
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct)
@@ -206,7 +221,8 @@ workflow analysis_workflow {
         runNanoFilt(convertGenbank.out)
         runNanoPlot(runNanoFilt.out)
         calculateRetained(runNanoPlot.out)
-        alignEntries(calculateRetained.out)
+        assembleDeNovo(calculateRetained.out)
+        alignEntries(assembleDeNovo.ou)
         callVariants(alignEntries.out)
         callConsensus(callVariants.out)
         calculateAligned(callConsensus.out)
