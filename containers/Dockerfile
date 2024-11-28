@@ -58,10 +58,9 @@ ENV JAVA_HOME /usr/lib/jvm/default-java/
 RUN pip install --no-cache-dir packaging
 # Python packages:
 RUN pip install --no-cache-dir networkx==3.1 python-Levenshtein==0.21.1 pypugjs==5.9.12 jinja2==3.1.2 weasyprint==59.0 beautifulsoup4==4.12.2 Markdown==3.4.4
-RUN pip install --no-cache-dir matplotlib==3.7.2 numpy==1.25.2 pandas==2.0.3 weighted_levenshtein==0.2.2 portion==2.4.1
-RUN pip install --no-cache-dir biopython==1.78
-RUN pip install --no-cache-dir dna_features_viewer==3.1.2 geneblocks==1.2.3 cyvcf2==0.30.22 pdf_reports==0.3.5
-RUN pip install --no-cache-dir geneblocks==1.2.3
+RUN pip install --no-cache-dir matplotlib==3.8.4 numpy==1.25.2 pandas==2.0.3 weighted_levenshtein==0.2.2 portion==2.4.1
+RUN pip install --no-cache-dir biopython==1.81
+RUN pip install --no-cache-dir dna_features_viewer==3.1.3 geneblocks==1.2.3 cyvcf2==0.30.22 pdf_reports==0.3.7
 RUN pip install --no-cache-dir NanoPlot==1.38.1 nanofilt==2.8.0
 RUN pip install ediacara@git+https://github.com/Edinburgh-Genome-Foundry/Ediacara.git
 RUN pip install --no-cache-dir pypdf==4.2.0
