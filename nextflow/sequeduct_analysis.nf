@@ -71,32 +71,33 @@ process calculateRetained {
 }
 
 process assembleDeNovo {
-    publishDir 'results/dir2_analysis/n4_de_novo_assembly', mode: 'copy'
-    
+
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path("${assembly_dir}/${tig_name}")
     script:
         assembly_dir = barcode + '_assembly'
+        tig_name = barcode + params.canu_postfix
         genomsize_param = 'genomeSize=' + seq_length.toInteger().div(1000) + 'k'
         """
-        canu -p $params.assembly_prefix -d $assembly_dir $genomsize_param -nanopore $fastq_file
+        canu -p $barcode -d $assembly_dir $genomsize_param -nanopore $fastq_file
         """
 }
 
 
 process trimAssembly {
+    publishDir 'results/dir2_analysis/n4_de_novo_assembly/contigs', mode: 'copy', pattern: "*contigs.fasta"
     publishDir 'results/dir2_analysis/n4_de_novo_assembly/trimmed', mode: 'copy', pattern: '*_asm.fasta'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path), path(trimmed_denovo)
     script:
         trimmed_denovo = barcode + '_asm.fasta'
         """
-        trim_assembly.py "$assembly_dir" "$params.assembly_prefix" "$params.canu_postfix" "$trimmed_denovo" "$barcode"
+        trim_assembly.py "$assembly_dir" "$barcode" "$params.canu_postfix" "$trimmed_denovo" "$barcode"
         """
 }
 
@@ -104,7 +105,7 @@ process align_de_novo_asm {
     publishDir 'results/dir2_analysis/n5_de_novo_alignment', mode: 'copy', pattern: '*.paf'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path), path(trimmed_denovo)
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     script:
