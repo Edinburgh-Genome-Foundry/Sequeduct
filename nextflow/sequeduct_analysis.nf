@@ -101,7 +101,7 @@ process trimAssembly {
 }
 
 process align_de_novo_asm {
-    publishDir 'results/dir2_analysis/n4_de_novo_alignment', mode: 'copy', pattern: '*.paf'
+    publishDir 'results/dir2_analysis/n5_de_novo_alignment', mode: 'copy', pattern: '*.paf'
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo)
@@ -115,10 +115,10 @@ process align_de_novo_asm {
 }
 
 process alignEntries {
-    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.paf'
-    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bam'
-    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.bai'
-    publishDir 'results/dir2_analysis/n4_alignment', mode: 'copy', pattern: '*.tsv'
+    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.paf'
+    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.bam'
+    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.bai'
+    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
@@ -156,7 +156,7 @@ process callVariants {
 }
 
 process callConsensus {
-    publishDir 'results/dir2_analysis/n6_consensus', mode: 'copy', pattern: '*_consensus.fa'
+    publishDir 'results/dir2_analysis/n7_consensus', mode: 'copy', pattern: '*_consensus.fa'
 
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
@@ -210,7 +210,7 @@ process writeCSV {
 }
 
 process runEdiacara {
-    publishDir 'results/dir2_analysis/n7_results', mode: 'copy'
+    publishDir 'results/dir2_analysis/n8_results', mode: 'copy'
 
     input:
         file paf
