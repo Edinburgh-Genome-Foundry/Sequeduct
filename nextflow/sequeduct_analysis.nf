@@ -108,7 +108,7 @@ process align_de_novo_asm {
     output:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
     script:
-        aln = barcode + '_asm' + sample + '.paf'
+        aln = barcode + '_asm_' + sample + '.paf'
         """
         minimap2 -cx asm5 $sample_fasta $trimmed_denovo > $aln
         """
