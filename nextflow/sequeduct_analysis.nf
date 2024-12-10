@@ -117,8 +117,8 @@ process align_de_novo_asm {
 
 process alignEntries {
     publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.paf'
-    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.bam'
-    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.bai'
+    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.bam', enabled: params.save_bam
+    publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.bai', enabled: params.save_bam
     publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
