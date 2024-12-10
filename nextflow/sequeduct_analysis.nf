@@ -27,7 +27,7 @@ process convertGenbank {
 }
 
 process runNanoFilt {
-    publishDir 'results/dir2_analysis/n2_fastq_filtered', mode: 'copy', pattern: '*.fastq'  // need only the fastq
+    publishDir 'results/dir2_analysis/n2_fastq_filtered', mode: 'copy', pattern: '*.fastq', enabled: params.save_filtered_fastq
 
     input:
         tuple val(entry), val(barcode), path(barcode_path), val(fastq_files), val(sample), path(sample_fasta), val(seq_length)
