@@ -45,10 +45,10 @@ RUN tar -jxvf minimap2-2.24_x64-linux.tar.bz2 \
 ENV PATH="/opt/minimap2-2.24_x64-linux:$PATH"
 ########################################################################################
 # Canu:
-ADD https://github.com/marbl/canu/releases/download/v2.2/canu-2.2.Linux-amd64.tar.xz .
-RUN tar -xJf canu-2.2.Linux-amd64.tar.xz \
-    && mv canu-2.2/ /opt/canu-2.2
-ENV PATH="/opt/canu-2.2/bin:$PATH"
+ADD https://github.com/marbl/canu/releases/download/v2.3/canu-2.3.Linux-amd64.tar.xz .
+RUN tar -xJf canu-2.3.Linux-amd64.tar.xz \
+    && mv canu-2.3/ /opt/canu-2.3
+ENV PATH="/opt/canu-2.3/bin:$PATH"
 ########################################################################################
 # Java:
 RUN apt-get install -y default-jre

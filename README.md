@@ -105,7 +105,7 @@ Enable the barcode trimming option during the sequencing run. This will ensure t
 
 If you have the FASTQ files in gzip compressed format (`.gz`), then you must uncompress them (e.g. run `gunzip --recursive *` in the FASTQ folder).
 
-Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A [fix has been posted](https://github.com/marbl/canu/issues/2035), but it's not released yet.
+Note that canu v2.2, used by older versions of the pipeline, requires minimum 100 reads, otherwise it returns an error. The latest version of the pipeline uses canu v2.3 which has [this issue fixed](https://github.com/marbl/canu/issues/2035).
 
 For convenience, a script is included to collect plot files from the result directories (`bin/collect_plots.py`).
 
