@@ -101,6 +101,8 @@ A more detailed example and demonstration data are available at the [Sequeduct d
 
 For simplicity, the names in the sample sheet are used for finding the reference Genbank files, therefore sample names must match filenames with a ".gb" extension.
 
+Enable the barcode trimming option during the sequencing run. This will ensure that full-length read size will match the plasmid size, and that there are no unaligned sections in the reads.
+
 If you have the FASTQ files in gzip compressed format (`.gz`), then you must uncompress them (e.g. run `gunzip --recursive *` in the FASTQ folder).
 
 Note that canu v2.2 requires minimum 100 reads, otherwise it returns an error. A [fix has been posted](https://github.com/marbl/canu/issues/2035), but it's not released yet.
