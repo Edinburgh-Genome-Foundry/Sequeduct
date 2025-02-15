@@ -81,7 +81,7 @@ process assembleDeNovo {
         tig_name = barcode + params.canu_postfix
         genomsize_param = 'genomeSize=' + seq_length.toInteger().div(1000) + 'k'
         """
-        canu -p $barcode -d $assembly_dir $genomsize_param -nanopore $fastq_file
+        canu -p $barcode -d $assembly_dir $genomsize_param -nanopore $fastq_file 
         """
 }
 
@@ -172,7 +172,7 @@ process callConsensus {
         """
         bgzip --keep --index $vcf_file
         bcftools index $vcf_gz_file
-        bcftools filter --output-type v -i'%QUAL>10' $vcf_gz_file > $filtered_vcf_file
+        bcftools filter --output-type v -i'QUAL>10' $vcf_gz_file > $filtered_vcf_file
         filter_vcf.py "$filtered_vcf_file" "$double_filtered_vcf_file"
         bgzip --keep --index $double_filtered_vcf_file
         bcftools index $double_filtered_vcf_gz_file

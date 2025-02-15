@@ -1,6 +1,11 @@
 FROM ubuntu:24.04
 ########################################################################################
 RUN apt-get update
+# Python:
+RUN apt-get install -y python3 python3-pip python3-venv
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # For GeneBlocks:
 RUN apt-get install -y ncbi-blast+
 # weighted-levenshtein:
@@ -8,6 +13,7 @@ RUN apt-get install -y gcc
 RUN pip install --no-cache-dir weighted-levenshtein
 ########################################################################################
 # http://www.htslib.org/download/
+RUN apt-get install -y libncurses-dev libbz2-dev liblzma-dev
 ADD https://github.com/samtools/samtools/releases/download/1.21/samtools-1.21.tar.bz2 .
 RUN tar xjvf samtools-1.21.tar.bz2
 RUN cd samtools-1.21 \
@@ -44,15 +50,29 @@ RUN tar -jxvf minimap2-2.28_x64-linux.tar.bz2 \
     && mv minimap2-2.28_x64-linux/ /opt/minimap2-2.28_x64-linux
 ENV PATH="/opt/minimap2-2.28_x64-linux:$PATH"
 ########################################################################################
-# Canu:
-ADD https://github.com/marbl/canu/releases/download/v2.3/canu-2.3.Linux-amd64.tar.xz .
-RUN tar -xJf canu-2.3.Linux-amd64.tar.xz \
-    && mv canu-2.3/ /opt/canu-2.3
-ENV PATH="/opt/canu-2.3/bin:$PATH"
-########################################################################################
 # Java:
 RUN apt-get install -y default-jre
-ENV JAVA_HOME /usr/lib/jvm/default-java/
+ENV JAVA_HOME=/usr/lib/jvm/default-java/
+########################################################################################
+# Canu:
+# Install from source...
+# RUN apt-get install -y libcurl4-gnutls-dev libpcap-dev libssl-dev
+# RUN apt-get install -y git-all
+# RUN git clone https://github.com/marbl/canu.git \
+#     && cd canu/src \
+#     && make -j
+# ENV PATH="/canu/build/bin:$PATH"
+########
+# Simple canu install from release (once the patch release is made https://github.com/marbl/canu/issues/2359#issuecomment-2631317846)
+ADD https://github.com/marbl/canu/releases/download/v2.2/canu-2.2.Linux-amd64.tar.xz .
+RUN tar -xJf canu-2.2.Linux-amd64.tar.xz \
+    && mv canu-2.2/ /opt/canu-2.2
+ENV PATH="/opt/canu-2.2/bin:$PATH"
+# Latest release:
+# ADD https://github.com/marbl/canu/releases/download/v2.3/canu-2.3.Linux-amd64.tar.xz .
+# RUN tar -xJf canu-2.3.Linux-amd64.tar.xz \
+#     && mv canu-2.3/ /opt/canu-2.3
+# ENV PATH="/opt/canu-2.3/bin:$PATH"
 ########################################################################################
 # For DNA Features Viewer:
 RUN pip install --no-cache-dir packaging
@@ -62,6 +82,7 @@ RUN pip install --no-cache-dir matplotlib==3.10.0 numpy==2.2.0 pandas==2.2.3 wei
 RUN pip install --no-cache-dir biopython==1.84
 RUN pip install --no-cache-dir dna_features_viewer==3.1.3 geneblocks==1.2.3 cyvcf2==0.31.1 pdf_reports==0.3.7
 RUN pip install --no-cache-dir NanoPlot==1.44.1 nanofilt==2.8.0
+RUN apt-get install -y git-all
 RUN pip install ediacara@git+https://github.com/Edinburgh-Genome-Foundry/Ediacara.git
 RUN pip install --no-cache-dir pypdf==5.3.0
 RUN pip install --no-cache-dir pydyf==0.11.0
