@@ -74,14 +74,6 @@ Note that canu v2.2, used by older versions of the pipeline, requires minimum 10
 
 For convenience, a script is included to collect plot files from the result directories (`bin/collect_plots.py`).
 
-An existing log file from a previous run can prevent re-running the pipeline or resuming a run.
-In that case, add the below in your nextflow config file (in Ubuntu: `$HOME/.nextflow/config`). (Create the file if it doesn't exist.)
-
-```
-	report.overwrite = true
-	timeline.overwrite = true
-```
-
 The pipeline was designed to work with data from one or more barcodes (FASTQ subdirectories). It has been tested on a desktop machine running Ubuntu 
 24.04.1 LTS (Memory: 32.0 GiB; CPU: Intel® Core™ i5-9500 × 6). An older version of the pipeline was tested on Ubuntu 20.04.6 LTS (Memory: 15.5 GiB; CPU: Intel® Core™ i5-6500 CPU @ 3.20GHz × 4), and confirmed to work with up to 96 barcodes. The largest tested dataset was 1.5 GB Nanopore FASTQ data, resulting in 1.1 GB filtered data (100k filtered reads) with up to 55 MB individual filtered FASTQ files (i.e. per sample). If the dataset is much larger, then it may return an error at the variant call or another step. A recommended solution is to increase the quality cutoff (with parameter `--quality_cutoff`), and optionally the minimum length cutoff (`--min_length`), to work with fewer but better reads.
 
