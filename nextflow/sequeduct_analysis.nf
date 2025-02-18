@@ -93,7 +93,7 @@ process trimAssembly {
     input:
         tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path), path(trimmed_denovo)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path), path(trimmed_denovo), stdout // tig_count
     script:
         trimmed_denovo = barcode + '_asm.fasta'
         """
@@ -105,9 +105,9 @@ process align_de_novo_asm {
     publishDir 'results/dir2_analysis/n5_de_novo_alignment', mode: 'copy', pattern: '*.paf'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path), path(trimmed_denovo)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(tig_path), path(trimmed_denovo), val(tig_count)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     script:
         aln = barcode + '_asm_' + sample + '.paf'
         """
@@ -122,9 +122,9 @@ process alignEntries {
     publishDir 'results/dir2_analysis/n6_alignment', mode: 'copy', pattern: '*.tsv'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     script:
         sam_file = entry + '.sam'
         paf_file = entry + '.paf'
@@ -146,9 +146,9 @@ process callVariants {
     publishDir 'results/dir2_analysis/n5_variant_calls', mode: 'copy', pattern: '*.vcf'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     script:
         vcf_file = entry + '.vcf'
         """
@@ -160,9 +160,9 @@ process callConsensus {
     publishDir 'results/dir2_analysis/n7_consensus', mode: 'copy', pattern: '*_consensus.fa'
 
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     script:
         vcf_gz_file = entry + '.vcf.gz'
         filtered_vcf_file = entry + '_filtered.vcf'
@@ -182,9 +182,9 @@ process callConsensus {
 
 process calculateAligned {
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln)
     output:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln), stdout // stdout for aligned_pct
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln), stdout // stdout for aligned_pct
     script:
         """
         calculate_aligned.py $fastq_file $paf_file
@@ -193,7 +193,7 @@ process calculateAligned {
 
 process writeCSV {
     input:
-        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), path(aln), val(aligned_pct)
+        tuple val(entry), val(barcode), val(sample), path(sample_fasta), val(seq_length), path(fastq_file), path(paf_file), path(bam_file), path(bai_file), path(counts_tsv), path(vcf_file), path(filtered_vcf_file), path(consensus_fa_file), val(retained_pct), path(assembly_dir), path(trimmed_denovo), val(tig_count), path(aln), val(aligned_pct)
     output:
         path samplesheet_csv, emit: samplesheet_csv_ch
         path paf_file, emit: paf_file_ch
@@ -206,7 +206,7 @@ process writeCSV {
         samplesheet_csv = "entries.csv"
         // order is important, see Python script in next process:
         """
-        echo "$params.projectname,$entry,$barcode,$sample,$sample_fasta,$filtered_vcf_file,$paf_file,$counts_tsv,$consensus_fa_file,$retained_pct,$aligned_pct,$trimmed_denovo,$aln" >> $samplesheet_csv
+        echo "$params.projectname,$entry,$barcode,$sample,$sample_fasta,$filtered_vcf_file,$paf_file,$counts_tsv,$consensus_fa_file,$retained_pct,$aligned_pct,$trimmed_denovo,$tig_count,$aln" >> $samplesheet_csv
         """    
 }
 

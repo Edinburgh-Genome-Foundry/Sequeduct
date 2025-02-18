@@ -22,9 +22,10 @@ from Bio import SeqIO
 canu_fasta = assembly_dir + '/' + params_assembly_prefix + params_canu_postfix
 try:
     contig = SeqIO.read(canu_fasta, format="fasta")
+    out_text = "1"
 except:
-    print("The FASTA file contains more than 1 contigs. First contig used.")
     contig = next(SeqIO.parse(canu_fasta, format="fasta"))
+    out_text = "MULTIPLE"
 
 entries = contig.description.split(" ")
 desc_dict = {"name": entries[0]}  # first is the name
@@ -41,4 +42,4 @@ if desc_dict["suggestCircular"] == "yes":  # as output by canu
 else:  # keep intact
     SeqIO.write(contig, trimmed_denovo, format="fasta")
 
-print("Trimmed:", barcode)
+print(out_text, end="")  # to be shown in results

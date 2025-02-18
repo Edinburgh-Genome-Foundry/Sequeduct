@@ -47,6 +47,7 @@ entries.columns = [
     "retained_pct",
     "aligned_pct",
     "asm",
+    "tig_count",
     "asm_aln",
 ]
 # This puts entries in order in the pdf:
@@ -55,6 +56,7 @@ entries.sort_values(by=["barcode", "sample"], inplace=True)
 # These two are for the result table. Ediacara classes do not store this info.
 aligned_pct_dict = {}
 retained_pct_dict = {}
+tig_count_dict = {}
 
 comparatorgroups = []
 for index, row in entries.iterrows():
@@ -99,6 +101,7 @@ for index, row in entries.iterrows():
 
     aligned_pct_dict[entry] = str(row["aligned_pct"]) + "%"  # format for the table
     retained_pct_dict[entry] = str(row["retained_pct"])  # already has percent sign
+    tig_count_dict[entry] = str(row["tig_count"])
 
     print("    ... done")
 
@@ -118,6 +121,7 @@ results = []
 aligned_pct = []
 aligned_reads = []
 retained_pct = []
+tig_counts = []
 
 for comparatorgroup in sequencinggroup.comparatorgroups:
     for index, row in comparatorgroup.summary_table.iterrows():
@@ -129,6 +133,7 @@ for comparatorgroup in sequencinggroup.comparatorgroups:
         aligned_pct += [aligned_pct_dict[entry]]
         aligned_reads += [comparatorgroup.n_fastq_reads]
         retained_pct += [retained_pct_dict[entry]]
+        tig_counts += [tig_count_dict[entry]]
 
 d = {
     "Barcode": pd.Series(barcodes),
@@ -136,6 +141,7 @@ d = {
     "Retained_bp_pct": pd.Series(retained_pct),
     "Aligned_read_pct": pd.Series(aligned_pct),
     "Aligned_reads": pd.Series(aligned_reads),
+    "asm_contigs": pd.Series(tig_counts),
     "Result": pd.Series(results),
 }
 
