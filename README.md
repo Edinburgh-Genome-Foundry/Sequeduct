@@ -4,7 +4,7 @@
 
 # Sequeduct
 
-![version](https://img.shields.io/badge/current_version-0.4.1-blue)
+![version](https://img.shields.io/badge/current_version-0.4.2-blue)
 
 Sequeduct (**seque**ncing aque**duct**) is a long read sequencing data analysis pipeline for validating plasmids and DNA assembly constructs.
 
@@ -23,7 +23,7 @@ Install [Nextflow](https://www.nextflow.io/).
 Pull the Nextflow pipeline:
 
 ```bash
-nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.4.1
+nextflow pull edinburgh-genome-foundry/Sequeduct -r v0.4.2
 ```
 
 Note: Nextflow sometimes returns the error `Cannot find revision`, in which case try and run the same pull command again.
@@ -39,22 +39,22 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 
 ```bash
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.1 -entry preview --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry preview --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv'
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.1 -entry analysis --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry analysis --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project'
 # Review
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.1 -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry review --reference_dir='genbank' \
     --results_csv='results_sheet.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
     --assembly_plan='assembly_plan.csv'
 # De novo assembly
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.1 -entry assembly --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry assembly --fastq_dir='fastq_pass' \
     --assembly_sheet='assembly_sheet.csv'
 ```
 
