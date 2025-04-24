@@ -12,10 +12,36 @@
 nextflow.enable.dsl=2
 
 
+include { demultiplex_workflow } from "$projectDir/nextflow/sequeduct_demultiplex.nf"
 include { preview_workflow } from "$projectDir/nextflow/sequeduct_preview.nf"
 include { analysis_workflow } from "$projectDir/nextflow/sequeduct_analysis.nf"
 include { review_denovo } from "$projectDir/nextflow/sequeduct_review.nf"
 include { assemble_denovo } from "$projectDir/nextflow/sequeduct_assembly.nf"
+
+///////////////////////////////////////////////////////////////////////////////
+
+workflow demultiplex {
+    Channel
+        .fromPath(params.sample_sheet)
+        .splitCsv(header: true)
+        .map { row -> 
+            def barcode_dir = row['Barcode_dir']  // a barcode is present only once
+            def barcode_path = file("${params.fastq_dir}/${barcode_dir}")
+            def fastq_files = barcode_path.listFiles()  // multiple FASTQ in each barcode
+
+            def sample = row['Sample']  // entry may contain multiple samples
+            // def entry = "${barcode_dir}_${sample}"  // unique key for each sample sheet entry
+            def genbank_paths = sample.tokenize(';')  // separator character
+            for (int i = 0; i < genbank_paths.size(); i++) {
+                genbank_path = genbank_paths[i]
+                genbank_paths[i] = file("${params.reference_dir}/${genbank_path}.gb") 
+            }
+            return [barcode_dir, barcode_path, fastq_files, sample, genbank_paths]
+            }
+        .set { multiplex_ch }
+
+    demultiplex_workflow(multiplex_ch)
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -24,7 +50,7 @@ workflow preview {
     Channel
         .fromPath(params.sample_sheet)
         .splitCsv(header: true)
-        .unique { row -> row['Barcode_dir'] }  // a barcode may be present multiple times due to plasmid pooling
+        .unique { row -> row['Barcode_dir'] }
         .map { row ->
             def barcode_out = row['Barcode_dir'] + '_plots'
             def barcode_dir = row['Barcode_dir']  // a barcode is present only once -- no pooling
