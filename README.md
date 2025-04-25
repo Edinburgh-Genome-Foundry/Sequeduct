@@ -41,8 +41,8 @@ Create a directory for your project and copy (or link) the FASTQ directories fro
 # Demultiplex
 nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.3 -entry demultiplex \
     --fastq_dir='fastq_pass' \
-	--reference_dir='genbank' \
-	--sample_sheet='sample_sheet.csv'
+    --reference_dir='genbank' \
+    --sample_sheet='sample_sheet.csv'
 # Preview
 nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.3 -entry preview \
     --fastq_dir='fastq_pass' \
