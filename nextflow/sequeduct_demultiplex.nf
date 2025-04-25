@@ -12,6 +12,8 @@
 nextflow.enable.dsl=2
 
 
+///////////////////////////////////////////////////////////////////////////////
+
 // Multiplex workflow processes:
 process createFASTA {
     input:
@@ -58,8 +60,8 @@ process createSubDirs {
         """
 }
 
-process createSampleSheet {
-    publishDir 'results/dir0_demultiplex', mode: 'copy'
+process createMultiPlexSampleSheet {
+    // publishDir 'results/dir0_demultiplex', mode: 'copy'
     input:
         path(samplesheet_entries_csv)
     output:
@@ -70,6 +72,8 @@ process createSampleSheet {
         (echo "Sample,Barcode_dir"; cat "$samplesheet_entries_csv") > $samplesheet_split_csv
         """
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 // Singleplex workflow processes:
 process copyFastqDir {
@@ -87,7 +91,7 @@ process copyFastqDir {
 }
 
 process createSinglePlexSampleSheet {
-    publishDir 'results/dir0_demultiplex', mode: 'copy'
+    // publishDir 'results/dir0_demultiplex', mode: 'copy'
     input:
         path(singleplex_samplesheet_ch)
     output:
@@ -98,6 +102,29 @@ process createSinglePlexSampleSheet {
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+
+// Samplesheet workflow
+
+process combineSampleSheets {
+    publishDir 'results/dir0_demultiplex', mode: 'copy'
+    input:
+        path(singleplex_samplesheet_ch)
+        path(multiplex_samplesheet_ch)
+    output:
+        path(combined_samplesheet_ch)
+    script:
+        combined_samplesheet_ch = "samplesheet.csv"
+        """
+        cat $multiplex_samplesheet_ch $singleplex_samplesheet_ch > $combined_samplesheet_ch
+        """
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Workflows
+
 workflow demultiplex_workflow {
     take:
         multiplex_ch
@@ -105,7 +132,9 @@ workflow demultiplex_workflow {
         createFASTA(multiplex_ch)
         alignMultiplexReads(createFASTA.out)
         createSubDirs(alignMultiplexReads.out)
-        createSampleSheet(createSubDirs.out.samplesheet_entries_csv_ch.collectFile())
+        createMultiPlexSampleSheet(createSubDirs.out.samplesheet_entries_csv_ch.collectFile())
+    emit:
+        createMultiPlexSampleSheet.out
 }
 
 workflow singleplex_workflow {
@@ -114,4 +143,14 @@ workflow singleplex_workflow {
     main:
         copyFastqDir(singleplex_ch)
         createSinglePlexSampleSheet(copyFastqDir.out.singleplex_samplesheet_ch.collectFile())
+    emit:
+        createSinglePlexSampleSheet.out
+}
+
+workflow combine_samplesheets {
+    take:
+        singleplexsamplesheet_ch
+        multiplexsamplesheet_ch
+    main:
+        combineSampleSheets(singleplexsamplesheet_ch, multiplexsamplesheet_ch)
 }

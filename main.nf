@@ -14,6 +14,7 @@ nextflow.enable.dsl=2
 
 include { demultiplex_workflow } from "$projectDir/nextflow/sequeduct_demultiplex.nf"
 include { singleplex_workflow } from "$projectDir/nextflow/sequeduct_demultiplex.nf"
+include { combine_samplesheets } from "$projectDir/nextflow/sequeduct_demultiplex.nf"
 include { preview_workflow } from "$projectDir/nextflow/sequeduct_preview.nf"
 include { analysis_workflow } from "$projectDir/nextflow/sequeduct_analysis.nf"
 include { review_denovo } from "$projectDir/nextflow/sequeduct_review.nf"
@@ -48,6 +49,8 @@ workflow demultiplex {
 
     singleplex_workflow(plex_branches_ch.single_genbank)
     demultiplex_workflow(plex_branches_ch.multi_genbank)
+
+    combine_samplesheets(singleplex_workflow.out, demultiplex_workflow.out)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
