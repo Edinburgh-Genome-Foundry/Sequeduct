@@ -46,10 +46,10 @@ process createSubDirs {
    input:
         tuple val(barcode), file(barcode_path), val(fastq_files), val(sample), path(paf_file)
     output:
-        path "split_fastq/*"
+        path "${split_fastq_dir}/*"
     script:
         fastqFileString = fastq_files.join(' ')
-        split_fastq_dir = "split_fastq"
+        split_fastq_dir = "fastq_split"
         """
         demultiplex_data.py $split_fastq_dir $barcode $paf_file $fastqFileString
         """
