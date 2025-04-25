@@ -51,7 +51,7 @@ process createSubDirs {
         fastqFileString = fastq_files.join(' ')
         split_fastq_dir = "split_fastq"
         """
-        demultiplex_data.py $split_fastq_dir $fastqFileString
+        demultiplex_data.py $split_fastq_dir $barcode $paf_file $fastqFileString
         """
 }
 
