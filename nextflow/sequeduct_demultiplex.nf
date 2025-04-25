@@ -73,7 +73,7 @@ process createSampleSheet {
 
 // Singleplex workflow processes:
 process copyFastqDir {
-    publishDir 'results/dir0_demultiplex/fastq_split', mode: 'copy'
+    publishDir 'results/dir0_demultiplex/fastq_split', mode: 'copy', enabled: params.singleplex_out
     input:
         tuple val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_paths)
     output:
