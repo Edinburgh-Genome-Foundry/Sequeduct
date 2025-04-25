@@ -67,17 +67,31 @@ process createSampleSheet {
     script:
         samplesheet_split_csv = "samplesheet_split.csv"
         """
-        (echo "Sample,Barcode_dir"; cat "$samplesheet_entries_csv") >  $samplesheet_split_csv
+        (echo "Sample,Barcode_dir"; cat "$samplesheet_entries_csv") > $samplesheet_split_csv
         """
 }
 
 // Singleplex workflow processes:
 process copyFastqDir {
-    publishDir 'results/dir0_demultiplex/fastq_split', mode: 'copy', enabled: params.singleplex_out
+    publishDir 'results/dir0_demultiplex/fastq_split', mode: 'copy', pattern: "${barcode}", enabled: params.singleplex_out
     input:
         tuple val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_paths)
     output:
         file(barcode_path)
+        path(samplesheet_csv), emit: singleplex_samplesheet_ch
+    script:
+        samplesheet_csv = "singleplex_samplesheet.csv"
+        """
+        echo "$sample,$barcode" >> $samplesheet_csv
+        """
+}
+
+process createSinglePlexSampleSheet {
+    publishDir 'results/dir0_demultiplex', mode: 'copy'
+    input:
+        path(singleplex_samplesheet_ch)
+    output:
+        path(singleplex_samplesheet_ch)
     script:
         """
         """
@@ -99,4 +113,5 @@ workflow singleplex_workflow {
         singleplex_ch
     main:
         copyFastqDir(singleplex_ch)
+        createSinglePlexSampleSheet(copyFastqDir.out.singleplex_samplesheet_ch.collectFile())
 }
