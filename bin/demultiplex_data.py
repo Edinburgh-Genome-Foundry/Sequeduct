@@ -48,6 +48,7 @@ for read, refs in read_ref_dict.items():
 
 # Split fastq using Biopython:
 ref_dir_dict = dict()
+ref_barcode_dict = dict()  # for the new sample sheet
 counter = 1
 for ref in paf.target_name.unique():
     dirname = os.path.join(split_fastq_dir, barcode + "_" + str(counter))
@@ -56,7 +57,15 @@ for ref in paf.target_name.unique():
         os.mkdir(dirname)
     except:
         pass
+
+    barcodename = barcode + "_" + str(counter)
+    ref_barcode_dict[ref] = barcodename
+
     counter += 1
+
+with open("samplesheet_entries.csv", "w") as f:
+    for key, value in ref_barcode_dict.items():
+        f.write("%s,%s\n" % (key, value))
 
 ref_file_dict = {
     ref: os.path.join(directory, ref + ".fastq")

@@ -42,29 +42,40 @@ process alignMultiplexReads {
 }
 
 process createSubDirs {
-   publishDir 'results/dir0_demultiplex/', mode: 'copy'
-   input:
+    publishDir 'results/dir0_demultiplex', mode: 'copy', pattern: "$split_fastq_dir/*"
+    input:
         tuple val(barcode), file(barcode_path), val(fastq_files), val(sample), path(paf_file)
     output:
         path "${split_fastq_dir}/*"
+        path samplesheet_entries_csv, emit: samplesheet_entries_csv_ch
     script:
         fastqFileString = fastq_files.join(' ')
         split_fastq_dir = "fastq_split"
+        samplesheet_entries_csv = "samplesheet_entries.csv"  // for use in the analysis pipeline
         """
         demultiplex_data.py $split_fastq_dir $barcode $paf_file $fastqFileString
         """
 }
 
-// process createSampleSheet {
-
-// }
+process createSampleSheet {
+    publishDir 'results/dir0_demultiplex', mode: 'copy'
+    input:
+        path(samplesheet_entries_csv)
+    output:
+        path(samplesheet_split_csv)
+    script:
+        samplesheet_split_csv = "samplesheet_split.csv"
+        """
+        (echo "Sample,Barcode_dir"; cat "$samplesheet_entries_csv") >  $samplesheet_split_csv
+        """
+}
 
 workflow demultiplex_workflow {
     take:
         multiplex_ch
-
     main:
         createFASTA(multiplex_ch)
         alignMultiplexReads(createFASTA.out)
         createSubDirs(alignMultiplexReads.out)
+        createSampleSheet(createSubDirs.out.samplesheet_entries_csv_ch.collectFile())
 }
