@@ -12,6 +12,7 @@
 nextflow.enable.dsl=2
 
 
+// Multiplex workflow processes:
 process createFASTA {
     input:
         tuple val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_paths)
@@ -70,6 +71,19 @@ process createSampleSheet {
         """
 }
 
+// Singleplex workflow processes:
+process copyFastqDir {
+    publishDir 'results/dir0_demultiplex/fastq_split', mode: 'copy'
+    input:
+        tuple val(barcode), file(barcode_path), val(fastq_files), val(sample), file(genbank_paths)
+    output:
+        file(barcode_path)
+    script:
+        """
+        """
+}
+
+
 workflow demultiplex_workflow {
     take:
         multiplex_ch
@@ -78,4 +92,11 @@ workflow demultiplex_workflow {
         alignMultiplexReads(createFASTA.out)
         createSubDirs(alignMultiplexReads.out)
         createSampleSheet(createSubDirs.out.samplesheet_entries_csv_ch.collectFile())
+}
+
+workflow singleplex_workflow {
+    take:
+        singleplex_ch
+    main:
+        copyFastqDir(singleplex_ch)
 }
