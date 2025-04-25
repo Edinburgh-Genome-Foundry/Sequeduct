@@ -38,23 +38,32 @@ Alternatively, create a Docker image and run the pipeline using a Docker contain
 Create a directory for your project and copy (or link) the FASTQ directories from your Nanopore run (e.g. `fastq_pass`). Specify this together with a sample sheet in your commands:
 
 ```bash
+# Demultiplex
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry demultiplex \
+    --fastq_dir='fastq_pass' \
+	--reference_dir='genbank' \
+	--sample_sheet='sample_sheet.csv'
 # Preview
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry preview --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry preview \
+    --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv'
 # Analysis
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry analysis --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry analysis \
+    --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project'
 # Review
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry review --reference_dir='genbank' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry review \
+    --reference_dir='genbank' \
     --results_csv='results_sheet.csv' \
     --projectname='EGF project review' \
     --all_parts='parts_fasta/part_sequences.fasta' \
     --assembly_plan='assembly_plan.csv'
 # De novo assembly
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry assembly --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.2 -entry assembly \
+    --fastq_dir='fastq_pass' \
     --assembly_sheet='assembly_sheet.csv'
 ```
 
