@@ -26,9 +26,39 @@ process runNanoPlot {
         """
 }
 
+process obtainStats {
+    input:
+        path barcode
+    output:
+        path statsheet_csv, emit: statsheet_csv_ch
+
+    script:
+		analysis_nanostat = barcode + '/NanoStats.txt'
+		statsheet_csv = "statsheet.csv"
+		"""
+		obtain_stats.py $analysis_nanostat $barcode >> $statsheet_csv
+		"""
+}
+
+process writeCSV {
+    publishDir params.preview_output_dir, mode: 'copy'
+
+    input:
+        path samplesheet_csv
+    output:
+        path formatted_sheet_csv
+
+    script:
+    formatted_sheet_csv = "preview.csv"
+    """
+    cat $samplesheet_csv > $formatted_sheet_csv
+    """
+}
+
 workflow preview_workflow {
     take: input_ch
     main:
         runNanoPlot(input_ch)
+        obtainStats(runNanoPlot.out)
+        writeCSV(obtainStats.out.statsheet_csv_ch.collectFile())
 }
-
