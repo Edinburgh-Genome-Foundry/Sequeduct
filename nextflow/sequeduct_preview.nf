@@ -41,18 +41,31 @@ process obtainStats {
 }
 
 process writeCSV {
-    publishDir params.preview_output_dir, mode: 'copy'
-
     input:
         path samplesheet_csv
     output:
         path formatted_sheet_csv
 
     script:
-    formatted_sheet_csv = "preview.csv"
-    """
-    cat $samplesheet_csv > $formatted_sheet_csv
-    """
+        formatted_sheet_csv = "preview.csv"
+        """
+        cat $samplesheet_csv > $formatted_sheet_csv
+        """
+}
+
+process sortCSV {
+    publishDir params.preview_output_dir, mode: 'copy'
+
+    input:
+        path formatted_sheet_csv
+    output:
+        path sorted_csv
+
+    script:
+        sorted_csv = "preview_table.csv"
+        """
+        csv_sorter.py $formatted_sheet_csv $sorted_csv
+        """
 }
 
 workflow preview_workflow {
@@ -61,4 +74,5 @@ workflow preview_workflow {
         runNanoPlot(input_ch)
         obtainStats(runNanoPlot.out)
         writeCSV(obtainStats.out.statsheet_csv_ch.collectFile())
+        sortCSV(writeCSV.out)
 }
