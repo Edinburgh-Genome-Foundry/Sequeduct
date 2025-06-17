@@ -33,11 +33,11 @@ process obtainStats {
         path statsheet_csv, emit: statsheet_csv_ch
 
     script:
-		analysis_nanostat = barcode + '/NanoStats.txt'
-		statsheet_csv = "statsheet.csv"
-		"""
-		obtain_stats.py $analysis_nanostat $barcode >> $statsheet_csv
-		"""
+        analysis_nanostat = barcode + '/NanoStats.txt'
+        statsheet_csv = "statsheet.csv"
+        """
+        obtain_stats.py $analysis_nanostat $barcode >> $statsheet_csv
+        """
 }
 
 process writeCSV {
