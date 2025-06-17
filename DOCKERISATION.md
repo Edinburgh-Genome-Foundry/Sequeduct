@@ -31,7 +31,7 @@ docker build . -f containers/Dockerfile --tag sequeduct_local
 where `sequeduct_local` is a custom tag that you can specify, and should be used in the run commands. For example:
 
 ```bash
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.3 -entry analysis --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.4 -entry analysis --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
@@ -43,13 +43,13 @@ nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.3 -entry analysis --fast
 Alternatively, pull the Docker image if you have access to EGF's container repo (e.g. EGF staff members):
 
 ```bash
-docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:v0.4.3
+docker pull ghcr.io/edinburgh-genome-foundry/sequeduct:v0.4.4
 ```
 
 Use `-profile docker` to use this image. Example:
 
 ```bash
-nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.3 -entry analysis --fastq_dir='fastq_pass' \
+nextflow run edinburgh-genome-foundry/Sequeduct -r v0.4.4 -entry analysis --fastq_dir='fastq_pass' \
     --reference_dir='genbank' \
     --sample_sheet='sample_sheet.csv' \
     --projectname='EGF project' \
