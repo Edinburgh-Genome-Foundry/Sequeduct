@@ -97,7 +97,7 @@ process trimAssembly {
     script:
         trimmed_denovo = barcode + '_asm.fasta'
         """
-        trim_assembly.py "$assembly_dir" "$barcode" "$params.canu_postfix" "$trimmed_denovo" "$barcode"
+        trim_assembly.py "$assembly_dir" "$barcode" "$params.canu_postfix" "$trimmed_denovo" "$barcode" "$params.trim_selection"
         """
 }
 
